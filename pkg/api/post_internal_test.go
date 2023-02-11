@@ -6,10 +6,10 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"github.com/suzuki-shunsuke/github-comment/pkg/config"
-	"github.com/suzuki-shunsuke/github-comment/pkg/github"
-	"github.com/suzuki-shunsuke/github-comment/pkg/option"
-	"github.com/suzuki-shunsuke/github-comment/pkg/template"
+	"github.com/yuyaban/gitlab-comment/pkg/config"
+	"github.com/yuyaban/gitlab-comment/pkg/gitlab"
+	"github.com/yuyaban/gitlab-comment/pkg/option"
+	"github.com/yuyaban/gitlab-comment/pkg/template"
 )
 
 func TestPostController_getCommentParams(t *testing.T) { //nolint:funlen
@@ -17,7 +17,7 @@ func TestPostController_getCommentParams(t *testing.T) { //nolint:funlen
 	data := []struct {
 		title string
 		ctrl  *PostController
-		exp   *github.Comment
+		exp   *gitlab.Note
 		isErr bool
 		opts  *option.PostOptions
 	}{
@@ -36,17 +36,17 @@ func TestPostController_getCommentParams(t *testing.T) { //nolint:funlen
 			},
 			opts: &option.PostOptions{
 				Options: option.Options{
-					Org:      "suzuki-shunsuke",
-					Repo:     "github-comment",
+					Org:      "yuyaban",
+					Repo:     "gitlab-comment",
 					Token:    "xxx",
-					PRNumber: 1,
+					MRNumber: 1,
 				},
 				StdinTemplate: true,
 			},
-			exp: &github.Comment{
-				Org:      "suzuki-shunsuke",
-				Repo:     "github-comment",
-				PRNumber: 1,
+			exp: &gitlab.Note{
+				Org:      "yuyaban",
+				Repo:     "gitlab-comment",
+				MRNumber: 1,
 				Vars:     map[string]interface{}{},
 			},
 		},
@@ -65,17 +65,17 @@ func TestPostController_getCommentParams(t *testing.T) { //nolint:funlen
 			},
 			opts: &option.PostOptions{
 				Options: option.Options{
-					Org:      "suzuki-shunsuke",
-					Repo:     "github-comment",
+					Org:      "yuyaban",
+					Repo:     "gitlab-comment",
 					Token:    "xxx",
-					PRNumber: 1,
+					MRNumber: 1,
 					Template: "foo",
 				},
 			},
-			exp: &github.Comment{
-				Org:      "suzuki-shunsuke",
-				Repo:     "github-comment",
-				PRNumber: 1,
+			exp: &gitlab.Note{
+				Org:      "yuyaban",
+				Repo:     "gitlab-comment",
+				MRNumber: 1,
 				Vars:     map[string]interface{}{},
 			},
 		},
@@ -103,17 +103,17 @@ func TestPostController_getCommentParams(t *testing.T) { //nolint:funlen
 			},
 			opts: &option.PostOptions{
 				Options: option.Options{
-					Org:         "suzuki-shunsuke",
-					Repo:        "github-comment",
+					Org:         "yuyaban",
+					Repo:        "gitlab-comment",
 					Token:       "xxx",
 					TemplateKey: "default",
-					PRNumber:    1,
+					MRNumber:    1,
 				},
 			},
-			exp: &github.Comment{
-				Org:         "suzuki-shunsuke",
-				Repo:        "github-comment",
-				PRNumber:    1,
+			exp: &gitlab.Note{
+				Org:         "yuyaban",
+				Repo:        "gitlab-comment",
+				MRNumber:    1,
 				TemplateKey: "default",
 				Vars:        map[string]interface{}{},
 			},
@@ -139,17 +139,17 @@ func TestPostController_getCommentParams(t *testing.T) { //nolint:funlen
 			},
 			opts: &option.PostOptions{
 				Options: option.Options{
-					Org:      "suzuki-shunsuke",
-					Repo:     "github-comment",
+					Org:      "yuyaban",
+					Repo:     "gitlab-comment",
 					Token:    "xxx",
-					PRNumber: 1,
-					Template: `{{.Org}} {{.Repo}} {{.PRNumber}}`,
+					MRNumber: 1,
+					Template: `{{.Org}} {{.Repo}} {{.MRNumber}}`,
 				},
 			},
-			exp: &github.Comment{
-				Org:      "suzuki-shunsuke",
-				Repo:     "github-comment",
-				PRNumber: 1,
+			exp: &gitlab.Note{
+				Org:      "yuyaban",
+				Repo:     "gitlab-comment",
+				MRNumber: 1,
 				Vars:     map[string]interface{}{},
 			},
 		},
@@ -165,8 +165,8 @@ func TestPostController_getCommentParams(t *testing.T) { //nolint:funlen
 				},
 				Config: &config.Config{
 					Base: &config.Base{
-						Org:  "suzuki-shunsuke",
-						Repo: "github-comment",
+						Org:  "yuyaban",
+						Repo: "gitlab-comment",
 					},
 				},
 				Renderer: &template.Renderer{},
@@ -174,14 +174,14 @@ func TestPostController_getCommentParams(t *testing.T) { //nolint:funlen
 			opts: &option.PostOptions{
 				Options: option.Options{
 					Token:    "xxx",
-					PRNumber: 1,
+					MRNumber: 1,
 				},
 				StdinTemplate: true,
 			},
-			exp: &github.Comment{
-				Org:      "suzuki-shunsuke",
-				Repo:     "github-comment",
-				PRNumber: 1,
+			exp: &gitlab.Note{
+				Org:      "yuyaban",
+				Repo:     "gitlab-comment",
+				MRNumber: 1,
 				Vars:     map[string]interface{}{},
 			},
 		},

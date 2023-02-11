@@ -14,7 +14,7 @@ builds:
 release:
   prerelease: true
   header: |
-    [Pull Requests](https://github.com/suzuki-shunsuke/github-comment/pulls?q=is%3Apr+milestone%3A{{.Tag}}) | [Issues](https://github.com/suzuki-shunsuke/github-comment/issues?q=is%3Aissue+milestone%3A{{.Tag}}) | https://github.com/suzuki-shunsuke/github-comment/compare/{{.PreviousTag}}...{{.Tag}}
+    [Pull Requests](https://github.com/yuyaban/gitlab-comment/pulls?q=is%3Apr+milestone%3A{{.Tag}}) | [Issues](https://github.com/yuyaban/gitlab-comment/issues?q=is%3Aissue+milestone%3A{{.Tag}}) | https://github.com/yuyaban/gitlab-comment/compare/{{.PreviousTag}}...{{.Tag}}
 signs:
   - cmd: cosign
     artifacts: checksum
@@ -46,7 +46,7 @@ brews:
     commit_msg_template: "Brew formula update for {{ .ProjectName }} version {{ .Tag }}"
     # Your app's homepage.
     # Default is empty.
-    homepage: https://github.com/suzuki-shunsuke/github-comment
+    homepage: https://github.com/yuyaban/gitlab-comment
 
     # Template of your app's description.
     # Default is empty.

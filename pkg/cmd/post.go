@@ -9,14 +9,14 @@ import (
 	"strings"
 
 	"github.com/sirupsen/logrus"
-	"github.com/suzuki-shunsuke/github-comment/pkg/api"
-	"github.com/suzuki-shunsuke/github-comment/pkg/config"
-	"github.com/suzuki-shunsuke/github-comment/pkg/expr"
-	"github.com/suzuki-shunsuke/github-comment/pkg/github"
-	"github.com/suzuki-shunsuke/github-comment/pkg/option"
-	"github.com/suzuki-shunsuke/github-comment/pkg/platform"
-	"github.com/suzuki-shunsuke/github-comment/pkg/template"
 	"github.com/urfave/cli/v2"
+	"github.com/yuyaban/gitlab-comment/pkg/api"
+	"github.com/yuyaban/gitlab-comment/pkg/config"
+	"github.com/yuyaban/gitlab-comment/pkg/expr"
+	"github.com/yuyaban/gitlab-comment/pkg/gitlab"
+	"github.com/yuyaban/gitlab-comment/pkg/option"
+	"github.com/yuyaban/gitlab-comment/pkg/platform"
+	"github.com/yuyaban/gitlab-comment/pkg/template"
 	"golang.org/x/term"
 )
 
@@ -59,7 +59,7 @@ func parsePostOptions(opts *option.PostOptions, c *cli.Context) error {
 	opts.Template = c.String("template")
 	opts.TemplateKey = c.String("template-key")
 	opts.ConfigPath = c.String("config")
-	opts.PRNumber = c.Int("pr")
+	opts.MRNumber = c.Int("mr")
 	opts.DryRun = c.Bool("dry-run")
 	opts.SkipNoToken = c.Bool("skip-no-token")
 	opts.Silent = c.Bool("silent")
@@ -81,24 +81,22 @@ func parsePostOptions(opts *option.PostOptions, c *cli.Context) error {
 	return nil
 }
 
-func getGitHub(ctx context.Context, opts *option.Options, cfg *config.Config) (api.GitHub, error) {
+func getGitlab(ctx context.Context, opts *option.Options, cfg *config.Config) (api.Gitlab, error) {
 	if opts.DryRun {
-		return &github.Mock{
+		return &gitlab.Mock{
 			Stderr: os.Stderr,
 			Silent: opts.Silent,
 		}, nil
 	}
 	if opts.SkipNoToken && opts.Token == "" {
-		return &github.Mock{
+		return &gitlab.Mock{
 			Stderr: os.Stderr,
 			Silent: opts.Silent,
 		}, nil
 	}
-
-	return github.New(ctx, &github.ParamNew{ //nolint:wrapcheck
-		Token:              opts.Token,
-		GHEBaseURL:         cfg.GHEBaseURL,
-		GHEGraphQLEndpoint: cfg.GHEGraphQLEndpoint,
+	return gitlab.New(ctx, &gitlab.ParamNew{ //nolint:wrapcheck
+		Token:         opts.Token,
+		GitlabBaseURL: cfg.GitlabBaseURL,
 	})
 }
 
@@ -117,10 +115,10 @@ func setLogLevel(logLevel string) {
 
 // postAction is an entrypoint of the subcommand "post".
 func (runner *Runner) postAction(c *cli.Context) error {
-	if a := os.Getenv("GITHUB_COMMENT_SKIP"); a != "" {
+	if a := os.Getenv("GITLAB_COMMENT_SKIP"); a != "" {
 		skipComment, err := strconv.ParseBool(a)
 		if err != nil {
-			return fmt.Errorf("parse the environment variable GITHUB_COMMENT_SKIP as a bool: %w", err)
+			return fmt.Errorf("parse the environment variable GITLAB_COMMENT_SKIP as a bool: %w", err)
 		}
 		if skipComment {
 			return nil
@@ -149,7 +147,7 @@ func (runner *Runner) postAction(c *cli.Context) error {
 
 	var pt api.Platform = platform.Get()
 
-	gh, err := getGitHub(c.Context, &opts.Options, cfg)
+	gl, err := getGitlab(c.Context, &opts.Options, cfg)
 	if err != nil {
 		return fmt.Errorf("initialize commenter: %w", err)
 	}
@@ -162,7 +160,7 @@ func (runner *Runner) postAction(c *cli.Context) error {
 		},
 		Stdin:  runner.Stdin,
 		Stderr: runner.Stderr,
-		GitHub: gh,
+		Gitlab: gl,
 		Renderer: &template.Renderer{
 			Getenv: os.Getenv,
 		},
@@ -170,5 +168,6 @@ func (runner *Runner) postAction(c *cli.Context) error {
 		Config:   cfg,
 		Expr:     &expr.Expr{},
 	}
+
 	return ctrl.Post(c.Context, opts) //nolint:wrapcheck
 }

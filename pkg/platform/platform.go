@@ -5,62 +5,45 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/suzuki-shunsuke/github-comment/pkg/option"
-	"github.com/suzuki-shunsuke/go-ci-env/v3/cienv"
+	"github.com/yuyaban/gitlab-comment/pkg/option"
 )
 
 type Platform struct {
-	platform cienv.Platform
+	platformId string
 }
 
 func (pt *Platform) getRepoOrg() (string, error) { //nolint:unparam
-	if pt.platform != nil {
-		if org := pt.platform.RepoOwner(); org != "" {
-			return org, nil
-		}
+	if org := os.Getenv("CI_PROJECT_NAMESPACE"); org != "" {
+		return org, nil
 	}
+
 	return "", nil
 }
 
 func (pt *Platform) getRepoName() (string, error) { //nolint:unparam
-	if pt.platform != nil {
-		if repo := pt.platform.RepoName(); repo != "" {
-			return repo, nil
-		}
+	if repo := os.Getenv("CI_PROJECT_NAME"); repo != "" {
+		return repo, nil
 	}
 	return "", nil
 }
 
 func (pt *Platform) getSHA1() (string, error) { //nolint:unparam
-	if pt.platform != nil {
-		if sha1 := pt.platform.SHA(); sha1 != "" {
-			return sha1, nil
-		}
+	if sha1 := os.Getenv("CI_COMMIT_SHA"); sha1 != "" {
+		return sha1, nil
 	}
 	return "", nil
 }
 
-func (pt *Platform) getPRNumber() (int, error) {
-	if pt.platform != nil {
-		pr, err := pt.platform.PRNumber()
-		if err != nil {
-			return 0, fmt.Errorf("get a pull request number from an environment variable: %w", err)
-		}
-		if pr > 0 {
-			return pr, nil
-		}
-	}
+func (pt *Platform) getMRNumber() (int, error) {
 
-	if prS := os.Getenv("CI_INFO_PR_NUMBER"); prS != "" {
-		a, err := strconv.Atoi(prS)
+	if mr := os.Getenv("CI_MERGE_REQUEST_IID"); mr != "" {
+		a, err := strconv.Atoi(mr)
 		if err != nil {
-			return 0, fmt.Errorf("get a pull request number from an environment variable: %w", err)
+			return 0, fmt.Errorf("parse CI_MERGE_REQUEST_IID %s: %w", mr, err)
 		}
-		if a > 0 {
-			return a, nil
-		}
+		return a, nil
 	}
-	return 0, nil
+	return 0, fmt.Errorf("parse CI_MERGE_REQUEST_IID")
 }
 
 func (pt *Platform) complement(opts *option.Options) error {
@@ -85,15 +68,14 @@ func (pt *Platform) complement(opts *option.Options) error {
 		}
 		opts.SHA1 = sha1
 	}
-	if opts.PRNumber > 0 {
+	if opts.MRNumber > 0 {
 		return nil
 	}
-	pr, err := pt.getPRNumber()
+	pr, err := pt.getMRNumber()
 	if err != nil {
 		return err
 	}
-	opts.PRNumber = pr
-
+	opts.MRNumber = pr
 	return nil
 }
 
@@ -106,10 +88,7 @@ func (pt *Platform) ComplementHide(opts *option.HideOptions) error {
 }
 
 func (pt *Platform) CI() string {
-	if pt.platform == nil {
-		return ""
-	}
-	return pt.platform.ID()
+	return pt.platformId
 }
 
 func (pt *Platform) ComplementExec(opts *option.ExecOptions) error {
@@ -117,10 +96,7 @@ func (pt *Platform) ComplementExec(opts *option.ExecOptions) error {
 }
 
 func Get() *Platform {
-	cienv.Add(func(param *cienv.Param) cienv.Platform {
-		return NewGoogleCloudBuild(param)
-	})
 	return &Platform{
-		platform: cienv.Get(nil),
+		platformId: "gitlab-ci",
 	}
 }

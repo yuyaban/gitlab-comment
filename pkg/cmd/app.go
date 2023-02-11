@@ -26,8 +26,8 @@ func (flags *LDFlags) AppVersion() string {
 
 func (runner *Runner) Run(ctx context.Context, args []string) error { //nolint:funlen
 	app := cli.App{
-		Name:    "github-comment",
-		Usage:   "post a comment to GitHub",
+		Name:    "gitlab-comment",
+		Usage:   "post a comment to Gitlab",
 		Version: runner.LDFlags.AppVersion(),
 		Commands: []*cli.Command{
 			{
@@ -37,16 +37,16 @@ func (runner *Runner) Run(ctx context.Context, args []string) error { //nolint:f
 				Flags: []cli.Flag{
 					&cli.StringFlag{
 						Name:  "org",
-						Usage: "GitHub organization name",
+						Usage: "Gitlab organization name",
 					},
 					&cli.StringFlag{
 						Name:  "repo",
-						Usage: "GitHub repository name",
+						Usage: "Gitlab repository name",
 					},
 					&cli.StringFlag{
 						Name:    "token",
-						Usage:   "GitHub API token",
-						EnvVars: []string{"GITHUB_TOKEN", "GITHUB_ACCESS_TOKEN"},
+						Usage:   "Gitlab API token",
+						EnvVars: []string{"GITLAB_TOKEN", "GITLAB_ACCESS_TOKEN"},
 					},
 					&cli.StringFlag{
 						Name:  "sha1",
@@ -67,8 +67,8 @@ func (runner *Runner) Run(ctx context.Context, args []string) error { //nolint:f
 						Usage: "configuration file path",
 					},
 					&cli.IntFlag{
-						Name:  "pr",
-						Usage: "GitHub pull request number",
+						Name:  "mr",
+						Usage: "Gitlab merge request number",
 					},
 					&cli.StringSliceFlag{
 						Name:  "var",
@@ -80,13 +80,13 @@ func (runner *Runner) Run(ctx context.Context, args []string) error { //nolint:f
 					},
 					&cli.BoolFlag{
 						Name:  "dry-run",
-						Usage: "output a comment to standard error output instead of posting to GitHub",
+						Usage: "output a comment to standard error output instead of posting to Gitlab",
 					},
 					&cli.BoolFlag{
 						Name:    "skip-no-token",
 						Aliases: []string{"n"},
-						Usage:   "works like dry-run if the GitHub Access Token isn't set",
-						EnvVars: []string{"GITHUB_COMMENT_SKIP_NO_TOKEN"},
+						Usage:   "works like dry-run if the Gitlab Access Token isn't set",
+						EnvVars: []string{"GITLAB_COMMENT_SKIP_NO_TOKEN"},
 					},
 					&cli.BoolFlag{
 						Name:    "silent",
@@ -111,16 +111,16 @@ func (runner *Runner) Run(ctx context.Context, args []string) error { //nolint:f
 				Flags: []cli.Flag{
 					&cli.StringFlag{
 						Name:  "org",
-						Usage: "GitHub organization name",
+						Usage: "Gitlab organization name",
 					},
 					&cli.StringFlag{
 						Name:  "repo",
-						Usage: "GitHub repository name",
+						Usage: "Gitlab repository name",
 					},
 					&cli.StringFlag{
 						Name:    "token",
-						Usage:   "GitHub API token",
-						EnvVars: []string{"GITHUB_TOKEN", "GITHUB_ACCESS_TOKEN"},
+						Usage:   "Gitlab API token",
+						EnvVars: []string{"GITLAB_TOKEN", "GITLAB_ACCESS_TOKEN"},
 					},
 					&cli.StringFlag{
 						Name:  "sha1",
@@ -141,8 +141,8 @@ func (runner *Runner) Run(ctx context.Context, args []string) error { //nolint:f
 						Usage: "configuration file path",
 					},
 					&cli.IntFlag{
-						Name:  "pr",
-						Usage: "GitHub pull request number",
+						Name:  "mr",
+						Usage: "Gitlab merge request number",
 					},
 					&cli.StringSliceFlag{
 						Name:  "var",
@@ -154,13 +154,13 @@ func (runner *Runner) Run(ctx context.Context, args []string) error { //nolint:f
 					},
 					&cli.BoolFlag{
 						Name:  "dry-run",
-						Usage: "output a comment to standard error output instead of posting to GitHub",
+						Usage: "output a comment to standard error output instead of posting to Gitlab",
 					},
 					&cli.BoolFlag{
 						Name:    "skip-no-token",
 						Aliases: []string{"n"},
-						Usage:   "works like dry-run if the GitHub Access Token isn't set",
-						EnvVars: []string{"GITHUB_COMMENT_SKIP_NO_TOKEN"},
+						Usage:   "works like dry-run if the Gitlab Access Token isn't set",
+						EnvVars: []string{"GITLAB_COMMENT_SKIP_NO_TOKEN"},
 					},
 					&cli.BoolFlag{
 						Name:    "silent",
@@ -176,21 +176,21 @@ func (runner *Runner) Run(ctx context.Context, args []string) error { //nolint:f
 			},
 			{
 				Name:   "hide",
-				Usage:  "hide issue or pull request comments",
+				Usage:  "hide merge request notes",
 				Action: runner.hideAction,
 				Flags: []cli.Flag{
 					&cli.StringFlag{
 						Name:  "org",
-						Usage: "GitHub organization name",
+						Usage: "Gitlab organization name",
 					},
 					&cli.StringFlag{
 						Name:  "repo",
-						Usage: "GitHub repository name",
+						Usage: "Gitlab repository name",
 					},
 					&cli.StringFlag{
 						Name:    "token",
-						Usage:   "GitHub API token",
-						EnvVars: []string{"GITHUB_TOKEN", "GITHUB_ACCESS_TOKEN"},
+						Usage:   "Gitlab API token",
+						EnvVars: []string{"GITLAB_TOKEN", "GITLAB_ACCESS_TOKEN"},
 					},
 					&cli.StringFlag{
 						Name:  "config",
@@ -207,8 +207,8 @@ func (runner *Runner) Run(ctx context.Context, args []string) error { //nolint:f
 						Value:   "default",
 					},
 					&cli.IntFlag{
-						Name:  "pr",
-						Usage: "GitHub pull request number",
+						Name:  "mr",
+						Usage: "Gitlab merge request number",
 					},
 					&cli.StringFlag{
 						Name:  "sha1",
@@ -224,13 +224,13 @@ func (runner *Runner) Run(ctx context.Context, args []string) error { //nolint:f
 					},
 					&cli.BoolFlag{
 						Name:  "dry-run",
-						Usage: "output a comment to standard error output instead of posting to GitHub",
+						Usage: "output a comment to standard error output instead of posting to Gitlab",
 					},
 					&cli.BoolFlag{
 						Name:    "skip-no-token",
 						Aliases: []string{"n"},
-						Usage:   "works like dry-run if the GitHub Access Token isn't set",
-						EnvVars: []string{"GITHUB_COMMENT_SKIP_NO_TOKEN"},
+						Usage:   "works like dry-run if the Gitlab Access Token isn't set",
+						EnvVars: []string{"GITLAB_COMMENT_SKIP_NO_TOKEN"},
 					},
 					&cli.BoolFlag{
 						Name:    "silent",
@@ -244,7 +244,7 @@ func (runner *Runner) Run(ctx context.Context, args []string) error { //nolint:f
 			&cli.StringFlag{
 				Name:    "log-level",
 				Usage:   "log level",
-				EnvVars: []string{"GITHUB_COMMENT_LOG_LEVEL"},
+				EnvVars: []string{"GITLAB_COMMENT_LOG_LEVEL"},
 			},
 		},
 	}

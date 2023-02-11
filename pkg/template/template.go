@@ -49,6 +49,8 @@ func GetTemplates(param *ParamGetTemplates) map[string]string {
 			os.Getenv("BUILD_ID"),
 			os.Getenv("PROJECT_ID"),
 		),
+		"gitlab-ci": fmt.Sprintf(
+			`[ci link](%s)`, os.Getenv("CI_JOB_URL")),
 	}
 
 	builtinTemplates := map[string]string{

@@ -6,8 +6,8 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/suzuki-shunsuke/github-comment/pkg/cmd"
 	"github.com/suzuki-shunsuke/go-error-with-exit-code/ecerror"
+	"github.com/yuyaban/gitlab-comment/pkg/cmd"
 )
 
 var (

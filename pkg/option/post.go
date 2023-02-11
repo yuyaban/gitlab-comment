@@ -5,7 +5,8 @@ import (
 )
 
 type Options struct {
-	PRNumber           int
+	MRNumber           int
+	IssueNumber        int
 	Org                string
 	Repo               string
 	Token              string
@@ -33,7 +34,7 @@ func validate(opts *Options) error {
 	if opts.Token == "" && !opts.SkipNoToken {
 		return errors.New("token is required")
 	}
-	if opts.SHA1 == "" && opts.PRNumber <= 0 {
+	if opts.SHA1 == "" && opts.MRNumber <= 0 {
 		return errors.New("sha1 or pr are required")
 	}
 	return nil

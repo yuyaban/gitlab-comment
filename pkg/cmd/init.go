@@ -1,9 +1,9 @@
 package cmd
 
 import (
-	"github.com/suzuki-shunsuke/github-comment/pkg/api"
-	"github.com/suzuki-shunsuke/github-comment/pkg/fsys"
 	"github.com/urfave/cli/v2"
+	"github.com/yuyaban/gitlab-comment/pkg/api"
+	"github.com/yuyaban/gitlab-comment/pkg/fsys"
 )
 
 // initAction is an entrypoint of the subcommand "init".
