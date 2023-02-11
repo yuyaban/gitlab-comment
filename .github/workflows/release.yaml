@@ -5,16 +5,21 @@ on:
     tags: [v*]
 permissions: {}
 jobs:
-  release:
-    uses: suzuki-shunsuke/go-release-workflow/.github/workflows/release.yaml@72c13fd359150f22a93394f47a02840d08edd146 # v0.3.0
-    with:
-      homebrew: true
-      aqua_policy_config: aqua/policy.yaml
-      aqua_version: v1.33.0
-    secrets:
-      gh_app_id: ${{ secrets.APP_ID }}
-      gh_app_private_key: ${{ secrets.APP_PRIVATE_KEY }}
-    permissions:
-      contents: write
-      id-token: write
-      actions: read
+  goreleaser:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup Go
+        uses: actions/setup-go@v3
+        with:
+          go-version-file: "go.mod"
+      - name: Run goreleaser
+        uses: goreleaser/goreleaser-action@v2
+        with:
+          version: latest
+          args: release --rm-dist
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+
