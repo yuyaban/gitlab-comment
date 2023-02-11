@@ -167,8 +167,7 @@ func (ctrl *ExecController) getExecConfigs(cfg *config.Config, opts *option.Exec
 			}
 			execConfigs = []*config.ExecConfig{
 				{
-					When:            "ExitCode != 0",
-					UpdateCondition: `Comment.HasMeta && Comment.Meta.TemplateKey == "default"`,
+					When: "ExitCode != 0",
 					Template: `{{template "status" .}} {{template "link" .}}
 {{template "join_command" .}}
 {{template "hidden_combined_output" .}}`,
@@ -201,11 +200,10 @@ func (ctrl *ExecController) getExecConfig(
 
 // getComment returns Comment.
 // If the second returned value is false, no comment is posted.
-func (ctrl *ExecController) getComment(ctx context.Context, execConfigs []*config.ExecConfig, cmtParams *ExecCommentParams, templates map[string]string) (*gitlab.Note, bool, error) { //nolint:funlen
+func (ctrl *ExecController) getComment(execConfigs []*config.ExecConfig, cmtParams *ExecCommentParams, templates map[string]string) (*gitlab.Note, bool, error) { //nolint:funlen
 	tpl := cmtParams.Template
 	tplForTooLong := ""
 	var embeddedVarNames []string
-	var UpdateCondition string
 	if tpl == "" {
 		execConfig, f, err := ctrl.getExecConfig(execConfigs, cmtParams)
 		if err != nil {
@@ -220,7 +218,6 @@ func (ctrl *ExecController) getComment(ctx context.Context, execConfigs []*confi
 		tpl = execConfig.Template
 		tplForTooLong = execConfig.TemplateForTooLong
 		embeddedVarNames = execConfig.EmbeddedVarNames
-		UpdateCondition = execConfig.UpdateCondition
 	}
 
 	body, err := ctrl.Renderer.Render(tpl, templates, cmtParams)
@@ -258,7 +255,7 @@ func (ctrl *ExecController) getComment(ctx context.Context, execConfigs []*confi
 	body += embeddedComment
 	bodyForTooLong += embeddedComment
 
-	note := gitlab.Note{
+	return &gitlab.Note{
 		MRNumber:       cmtParams.MRNumber,
 		Org:            cmtParams.Org,
 		Repo:           cmtParams.Repo,
@@ -267,91 +264,14 @@ func (ctrl *ExecController) getComment(ctx context.Context, execConfigs []*confi
 		SHA1:           cmtParams.SHA1,
 		Vars:           cmtParams.Vars,
 		TemplateKey:    cmtParams.TemplateKey,
-	}
-
-	if UpdateCondition != "" && cmtParams.MRNumber != 0 {
-		if err := ctrl.setUpdatedCommentID(ctx, &note, UpdateCondition); err != nil {
-			return nil, false, fmt.Errorf("set updateCommentId: %w", err)
-		}
-	}
-
-	return &note, true, nil
-}
-
-func (ctrl *ExecController) setUpdatedCommentID(ctx context.Context, note *gitlab.Note, updateCondition string) error { //nolint:funlen
-	prg, err := ctrl.Expr.Compile(updateCondition)
-	if err != nil {
-		return err //nolint:wrapcheck
-	}
-
-	allnotes, err := ctrl.Gitlab.ListNote(ctx, &gitlab.MergeRequest{
-		Org:      note.Org,
-		Repo:     note.Repo,
-		MRNumber: note.MRNumber,
-	})
-
-	if err != nil {
-		return fmt.Errorf("list merge request notes: %w", err)
-	}
-	logrus.WithFields(logrus.Fields{
-		"org":       note.Org,
-		"repo":      note.Repo,
-		"mr_number": note.MRNumber,
-	}).Debug("get comments")
-
-	for _, n := range allnotes {
-		// if n.IsMinimized {
-		// 	// ignore minimized comments
-		// 	continue
-		// }
-		// if login != "" && comnt.Author.Login != login {
-		// 	// ignore other users' comments
-		// 	continue
-		// }
-
-		metadata := map[string]interface{}{}
-		hasMeta := extractMetaFromComment(n.Body, &metadata)
-		paramMap := map[string]interface{}{
-			"Comment": map[string]interface{}{
-				"Body":    n.Body,
-				"Meta":    metadata,
-				"HasMeta": hasMeta,
-			},
-			"Commit": map[string]interface{}{
-				"Org":      note.Org,
-				"Repo":     note.Repo,
-				"MRNumber": note.MRNumber,
-				"SHA1":     note.SHA1,
-			},
-			"Vars": note.Vars,
-		}
-
-		logrus.WithFields(logrus.Fields{
-			"node_id":   n.ID,
-			"condition": updateCondition,
-			"param":     paramMap,
-		}).Debug("judge whether an existing comment is ready for editing")
-		f, err := prg.Run(paramMap)
-		if err != nil {
-			logrus.WithError(err).WithFields(logrus.Fields{
-				"node_id": n.ID,
-			}).Error("judge whether an existing comment is hidden")
-			continue
-		}
-		if !f {
-			continue
-		}
-		note.NoteID = n.ID
-		break
-	}
-	return nil
+	}, true, nil
 }
 
 func (ctrl *ExecController) post(
 	ctx context.Context, execConfigs []*config.ExecConfig, cmtParams *ExecCommentParams,
 	templates map[string]string,
 ) error {
-	note, f, err := ctrl.getComment(ctx, execConfigs, cmtParams, templates)
+	note, f, err := ctrl.getComment(execConfigs, cmtParams, templates)
 	if err != nil {
 		return err
 	}
