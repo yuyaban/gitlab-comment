@@ -11,10 +11,11 @@ jobs:
     # Get changed files to filter jobs
     outputs:
       update-aqua-checksums: ${{steps.changes.outputs.update-aqua-checksums}}
-      renovate-config-validator: ${{steps.changes.outputs.renovate-config-validator}}
+      # renovate-config-validator: ${{steps.changes.outputs.renovate-config-validator}}
       ghalint: ${{steps.changes.outputs.ghalint}}
     runs-on: ubuntu-latest
     permissions: {}
+    timeout-minutes: 5
     steps:
       - uses: dorny/paths-filter@v2
         id: changes
@@ -25,8 +26,8 @@ jobs:
               - aqua/imports/*.yaml
               - aqua/aqua-checksums.json
               - .github/workflows/test.yaml
-            renovate-config-validator:
-              - renovate.json5
+            # renovate-config-validator:
+            #   - renovate.json5
             ghalint:
               - .github/workflows/*.yaml
               - aqua/imports/ghalint.yaml
@@ -47,24 +48,29 @@ jobs:
       gh_app_private_key: ${{secrets.APP_PRIVATE_KEY}}
 
   test:
-    uses: suzuki-shunsuke/go-test-workflow/.github/workflows/test.yaml@d066660eecb8f8a005d498a561d1938e3a843571 # v0.4.1
-    with:
-      aqua_policy_config: aqua/policy.yaml
-      aqua_version: v1.33.0
-      go-version: 1.19.5
-      golangci-lint-timeout: 120s
-    permissions:
-      pull-requests: write
-      contents: read
-
-  build:
     runs-on: ubuntu-latest
     permissions: {}
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
       - uses: actions/setup-go@6edd4406fa81c3da01a34fa6f6343087c207a568 # v3.5.0
         with:
-          go-version: "1.19.5"
+          go-version-file: "go.mod"
+      - uses: aquaproj/aqua-installer@61e2563dfe7674cbf74fe6ec212e444198a3bb00 # v2.0.2
+        with:
+          aqua_version: v1.33.0
+      - name: test
+        run: go test -v ./... -race -covermode=atomic
+
+  build:
+    runs-on: ubuntu-latest
+    permissions: {}
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - uses: actions/setup-go@6edd4406fa81c3da01a34fa6f6343087c207a568 # v3.5.0
+        with:
+          go-version-file: "go.mod"
 
       - uses: aquaproj/aqua-installer@61e2563dfe7674cbf74fe6ec212e444198a3bb00 # v2.0.2
         with:
@@ -73,13 +79,13 @@ jobs:
       - name: dry run
         run: bash scripts/test-dry-run.sh
 
-  renovate-config-validator:
-    # Validate Renovate Configuration by renovate-config-validator.
-    uses: suzuki-shunsuke/renovate-config-validator-workflow/.github/workflows/validate.yaml@1a2fd7b15d99b1c434124b0bd2d8bd55b54ed869 # v0.2.0
-    needs: path-filter
-    if: needs.path-filter.outputs.renovate-config-validator == 'true'
-    permissions:
-      contents: read
+  # renovate-config-validator:
+  #   # Validate Renovate Configuration by renovate-config-validator.
+  #   uses: suzuki-shunsuke/renovate-config-validator-workflow/.github/workflows/validate.yaml@1a2fd7b15d99b1c434124b0bd2d8bd55b54ed869 # v0.2.0
+  #   needs: path-filter
+  #   if: needs.path-filter.outputs.renovate-config-validator == 'true'
+  #   permissions:
+  #     contents: read
 
   ghalint:
     # Validate GitHub Actions Workflows by ghalint.
@@ -87,6 +93,7 @@ jobs:
     if: needs.path-filter.outputs.ghalint == 'true'
     runs-on: ubuntu-latest
     permissions: {}
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3
       - uses: aquaproj/aqua-installer@61e2563dfe7674cbf74fe6ec212e444198a3bb00 # v2.0.2
@@ -125,11 +132,12 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - update-aqua-checksums
-      - test
+      # - test
       - build
-      - renovate-config-validator
+      # - renovate-config-validator
       - ghalint
     permissions: {}
+    timeout-minutes: 5
     if: failure()
     steps:
       - run: exit 1

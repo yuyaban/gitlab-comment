@@ -7,10 +7,10 @@ import (
 	"io"
 
 	"github.com/sirupsen/logrus"
-	"github.com/suzuki-shunsuke/github-comment/pkg/config"
-	"github.com/suzuki-shunsuke/github-comment/pkg/github"
-	"github.com/suzuki-shunsuke/github-comment/pkg/option"
-	"github.com/suzuki-shunsuke/github-comment/pkg/template"
+	"github.com/yuyaban/gitlab-comment/pkg/config"
+	"github.com/yuyaban/gitlab-comment/pkg/gitlab"
+	"github.com/yuyaban/gitlab-comment/pkg/option"
+	"github.com/yuyaban/gitlab-comment/pkg/template"
 )
 
 type PostController struct {
@@ -23,7 +23,7 @@ type PostController struct {
 	HasStdin func() bool
 	Stdin    io.Reader
 	Stderr   io.Writer
-	GitHub   GitHub
+	Gitlab   Gitlab
 	Renderer Renderer
 	Platform Platform
 	Config   *config.Config
@@ -31,98 +31,85 @@ type PostController struct {
 }
 
 func (ctrl *PostController) Post(ctx context.Context, opts *option.PostOptions) error {
-	cmt, err := ctrl.getCommentParams(ctx, opts)
+	note, err := ctrl.getCommentParams(ctx, opts)
 	if err != nil {
 		return err
 	}
 	logrus.WithFields(logrus.Fields{
-		"org":       cmt.Org,
-		"repo":      cmt.Repo,
-		"pr_number": cmt.PRNumber,
-		"sha":       cmt.SHA1,
-	}).Debug("comment meta data")
+		"org":       note.Org,
+		"repo":      note.Repo,
+		"mr_number": note.MRNumber,
+		"sha":       note.SHA1,
+	}).Debug("note meta data")
 
-	cmtCtrl := CommentController{
-		GitHub: ctrl.GitHub,
+	noteCtrl := NoteController{
+		Gitlab: ctrl.Gitlab,
 		Expr:   ctrl.Expr,
 		Getenv: ctrl.Getenv,
 	}
-	return cmtCtrl.Post(ctx, cmt, nil)
+	return noteCtrl.Post(ctx, note, nil)
 }
 
-func (ctrl *PostController) setUpdatedCommentID(ctx context.Context, cmt *github.Comment, updateCondition string) error { //nolint:funlen
+func (ctrl *PostController) setUpdatedCommentID(ctx context.Context, note *gitlab.Note, updateCondition string) error { //nolint:funlen
 	prg, err := ctrl.Expr.Compile(updateCondition)
 	if err != nil {
 		return err //nolint:wrapcheck
 	}
 
-	login, err := ctrl.GitHub.GetAuthenticatedUser(ctx)
-	if err != nil {
-		logrus.WithError(err).Warn("get an authenticated user")
-	}
-
-	comments, err := ctrl.GitHub.ListComments(ctx, &github.PullRequest{
-		Org:      cmt.Org,
-		Repo:     cmt.Repo,
-		PRNumber: cmt.PRNumber,
+	allnotes, err := ctrl.Gitlab.ListNote(ctx, &gitlab.MergeRequest{
+		Org:      note.Org,
+		Repo:     note.Repo,
+		MRNumber: note.MRNumber,
 	})
+
 	if err != nil {
-		return fmt.Errorf("list issue or pull request comments: %w", err)
+		return fmt.Errorf("list merge request notes: %w", err)
 	}
 	logrus.WithFields(logrus.Fields{
-		"org":       cmt.Org,
-		"repo":      cmt.Repo,
-		"pr_number": cmt.PRNumber,
+		"org":       note.Org,
+		"repo":      note.Repo,
+		"mr_number": note.MRNumber,
 	}).Debug("get comments")
 
-	for _, comnt := range comments {
-		if comnt.IsMinimized {
-			// ignore minimized comments
-			continue
-		}
-		if login != "" && comnt.Author.Login != login {
-			// ignore other users' comments
-			continue
-		}
-
+	for _, n := range allnotes {
 		metadata := map[string]interface{}{}
-		hasMeta := extractMetaFromComment(comnt.Body, &metadata)
+		hasMeta := extractMetaFromComment(n.Body, &metadata)
 		paramMap := map[string]interface{}{
 			"Comment": map[string]interface{}{
-				"Body":    comnt.Body,
+				"Body":    n.Body,
 				"Meta":    metadata,
 				"HasMeta": hasMeta,
 			},
 			"Commit": map[string]interface{}{
-				"Org":      cmt.Org,
-				"Repo":     cmt.Repo,
-				"PRNumber": cmt.PRNumber,
-				"SHA1":     cmt.SHA1,
+				"Org":      note.Org,
+				"Repo":     note.Repo,
+				"MRNumber": note.MRNumber,
+				"SHA1":     note.SHA1,
 			},
-			"Vars": cmt.Vars,
+			"Vars": note.Vars,
 		}
 
 		logrus.WithFields(logrus.Fields{
-			"node_id":   comnt.ID,
+			"node_id":   n.ID,
 			"condition": updateCondition,
 			"param":     paramMap,
 		}).Debug("judge whether an existing comment is ready for editing")
 		f, err := prg.Run(paramMap)
 		if err != nil {
 			logrus.WithError(err).WithFields(logrus.Fields{
-				"node_id": comnt.ID,
+				"node_id": n.ID,
 			}).Error("judge whether an existing comment is hidden")
 			continue
 		}
 		if !f {
 			continue
 		}
-		cmt.CommentID = comnt.DatabaseID
+		note.NoteID = n.ID
+		break
 	}
 	return nil
 }
 
-// Reader is API to find and read the configuration file of github-comment
 type Reader interface {
 	FindAndRead(cfgPath, wd string) (config.Config, error)
 }
@@ -132,8 +119,8 @@ type Renderer interface {
 }
 
 type PostTemplateParams struct {
-	// PRNumber is the pull request number where the comment is posted
-	PRNumber int
+	// MRNumber is the merge request number where the comment is posted
+	MRNumber int
 	// Org is the GitHub Organization or User name
 	Org string
 	// Repo is the GitHub Repository name
@@ -151,15 +138,15 @@ type Platform interface {
 	CI() string
 }
 
-func (ctrl *PostController) getCommentParams(ctx context.Context, opts *option.PostOptions) (*github.Comment, error) { //nolint:funlen,cyclop,gocognit
+func (ctrl *PostController) getCommentParams(ctx context.Context, opts *option.PostOptions) (*gitlab.Note, error) { //nolint:funlen,cyclop,gocognit
 	if ctrl.Platform != nil {
 		if err := ctrl.Platform.ComplementPost(opts); err != nil {
 			return nil, fmt.Errorf("failed to complement opts with platform built in environment variables: %w", err)
 		}
 	}
 
-	if opts.PRNumber == 0 && opts.SHA1 != "" {
-		prNum, err := ctrl.GitHub.PRNumberWithSHA(ctx, opts.Org, opts.Repo, opts.SHA1)
+	if opts.MRNumber == 0 && opts.SHA1 != "" {
+		mrNum, err := ctrl.Gitlab.MRNumberWithSHA(ctx, opts.Org, opts.Repo, opts.SHA1)
 		if err != nil {
 			logrus.WithError(err).WithFields(logrus.Fields{
 				"org":  opts.Org,
@@ -167,8 +154,8 @@ func (ctrl *PostController) getCommentParams(ctx context.Context, opts *option.P
 				"sha":  opts.SHA1,
 			}).Warn("list associated prs")
 		}
-		if prNum > 0 {
-			opts.PRNumber = prNum
+		if mrNum > 0 {
+			opts.MRNumber = mrNum
 		}
 	}
 
@@ -182,13 +169,11 @@ func (ctrl *PostController) getCommentParams(ctx context.Context, opts *option.P
 
 	cfg := ctrl.Config
 
-	if cfg.Base != nil {
-		if opts.Org == "" {
-			opts.Org = cfg.Base.Org
-		}
-		if opts.Repo == "" {
-			opts.Repo = cfg.Base.Repo
-		}
+	if opts.Org == "" {
+		opts.Org = cfg.Base.Org
+	}
+	if opts.Repo == "" {
+		opts.Repo = cfg.Base.Repo
 	}
 
 	if err := option.ValidatePost(opts); err != nil {
@@ -224,7 +209,7 @@ func (ctrl *PostController) getCommentParams(ctx context.Context, opts *option.P
 		CI:        ci,
 	})
 	tpl, err := ctrl.Renderer.Render(opts.Template, templates, PostTemplateParams{
-		PRNumber:    opts.PRNumber,
+		MRNumber:    opts.MRNumber,
 		Org:         opts.Org,
 		Repo:        opts.Repo,
 		SHA1:        opts.SHA1,
@@ -235,7 +220,7 @@ func (ctrl *PostController) getCommentParams(ctx context.Context, opts *option.P
 		return nil, fmt.Errorf("render a template for post: %w", err)
 	}
 	tplForTooLong, err := ctrl.Renderer.Render(opts.TemplateForTooLong, templates, PostTemplateParams{
-		PRNumber:    opts.PRNumber,
+		MRNumber:    opts.MRNumber,
 		Org:         opts.Org,
 		Repo:        opts.Repo,
 		SHA1:        opts.SHA1,
@@ -246,8 +231,8 @@ func (ctrl *PostController) getCommentParams(ctx context.Context, opts *option.P
 		return nil, fmt.Errorf("render a template template_for_too_long for post: %w", err)
 	}
 
-	cmtCtrl := CommentController{
-		GitHub:   ctrl.GitHub,
+	noteCtrl := NoteController{
+		Gitlab:   ctrl.Gitlab,
 		Expr:     ctrl.Expr,
 		Getenv:   ctrl.Getenv,
 		Platform: ctrl.Platform,
@@ -258,7 +243,7 @@ func (ctrl *PostController) getCommentParams(ctx context.Context, opts *option.P
 			embeddedMetadata[name] = v
 		}
 	}
-	embeddedComment, err := cmtCtrl.getEmbeddedComment(map[string]interface{}{
+	embeddedComment, err := noteCtrl.getEmbeddedComment(map[string]interface{}{
 		"SHA1":        opts.SHA1,
 		"TemplateKey": opts.TemplateKey,
 		"Vars":        embeddedMetadata,
@@ -270,8 +255,8 @@ func (ctrl *PostController) getCommentParams(ctx context.Context, opts *option.P
 	tpl += embeddedComment
 	tplForTooLong += embeddedComment
 
-	cmt := &github.Comment{
-		PRNumber:       opts.PRNumber,
+	note := gitlab.Note{
+		MRNumber:       opts.MRNumber,
 		Org:            opts.Org,
 		Repo:           opts.Repo,
 		Body:           tpl,
@@ -281,12 +266,12 @@ func (ctrl *PostController) getCommentParams(ctx context.Context, opts *option.P
 		Vars:           cfg.Vars,
 		TemplateKey:    opts.TemplateKey,
 	}
-	if opts.UpdateCondition != "" && opts.PRNumber != 0 {
-		if err := ctrl.setUpdatedCommentID(ctx, cmt, opts.UpdateCondition); err != nil {
+	if opts.UpdateCondition != "" && opts.MRNumber != 0 {
+		if err := ctrl.setUpdatedCommentID(ctx, &note, opts.UpdateCondition); err != nil {
 			return nil, err
 		}
 	}
-	return cmt, nil
+	return &note, nil
 }
 
 func (ctrl *PostController) readTemplateFromStdin() (string, error) {

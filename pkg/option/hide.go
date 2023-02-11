@@ -1,8 +1,6 @@
 package option
 
-import (
-	"errors"
-)
+import "errors"
 
 type HideOptions struct {
 	Options
@@ -12,8 +10,8 @@ type HideOptions struct {
 }
 
 func ValidateHide(opts *HideOptions) error {
-	if opts.PRNumber <= 0 {
-		return errors.New("pull request or issue number is required")
+	if opts.MRNumber <= 0 {
+		return errors.New("merge request number is required")
 	}
 	if opts.HideKey == "" && opts.Condition == "" {
 		return errors.New("hide-key or condition are required")

@@ -4,8 +4,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"github.com/suzuki-shunsuke/github-comment/pkg/config"
-	"github.com/suzuki-shunsuke/github-comment/pkg/expr"
+	"github.com/yuyaban/gitlab-comment/pkg/config"
+	"github.com/yuyaban/gitlab-comment/pkg/expr"
 )
 
 func TestExecController_getExecConfig(t *testing.T) { //nolint:funlen

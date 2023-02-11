@@ -7,9 +7,9 @@ import (
 	"io"
 
 	"github.com/sirupsen/logrus"
-	"github.com/suzuki-shunsuke/github-comment/pkg/config"
-	"github.com/suzuki-shunsuke/github-comment/pkg/github"
-	"github.com/suzuki-shunsuke/github-comment/pkg/option"
+	"github.com/yuyaban/gitlab-comment/pkg/config"
+	"github.com/yuyaban/gitlab-comment/pkg/gitlab"
+	"github.com/yuyaban/gitlab-comment/pkg/option"
 )
 
 type HideController struct {
@@ -21,7 +21,7 @@ type HideController struct {
 	// If thre is the standard input, it is treated as the comment template
 	HasStdin func() bool
 	Stderr   io.Writer
-	GitHub   GitHub
+	Gitlab   Gitlab
 	Platform Platform
 	Config   *config.Config
 	Expr     Expr
@@ -29,14 +29,14 @@ type HideController struct {
 
 func (ctrl *HideController) Hide(ctx context.Context, opts *option.HideOptions) error {
 	logE := logrus.WithFields(logrus.Fields{
-		"program": "github-comment",
+		"program": "gitlab-comment",
 	})
 	param, err := ctrl.getParamListHiddenComments(ctx, opts)
 	if err != nil {
 		return err
 	}
 	nodeIDs, err := listHiddenComments(
-		ctx, ctrl.GitHub, ctrl.Expr, param, nil)
+		ctx, ctrl.Gitlab, ctrl.Expr, param, nil)
 	if err != nil {
 		return err
 	}
@@ -44,7 +44,7 @@ func (ctrl *HideController) Hide(ctx context.Context, opts *option.HideOptions) 
 		"count":    len(nodeIDs),
 		"node_ids": nodeIDs,
 	}).Debug("comments which would be hidden")
-	hideComments(ctx, ctrl.GitHub, nodeIDs)
+	hideComments(ctx, ctrl.Gitlab, nodeIDs)
 	return nil
 }
 
@@ -56,8 +56,8 @@ func (ctrl *HideController) getParamListHiddenComments(ctx context.Context, opts
 		}
 	}
 
-	if opts.PRNumber == 0 && opts.SHA1 != "" {
-		prNum, err := ctrl.GitHub.PRNumberWithSHA(ctx, opts.Org, opts.Repo, opts.SHA1)
+	if opts.MRNumber == 0 && opts.SHA1 != "" {
+		mrNum, err := ctrl.Gitlab.MRNumberWithSHA(ctx, opts.Org, opts.Repo, opts.SHA1)
 		if err != nil {
 			logrus.WithError(err).WithFields(logrus.Fields{
 				"org":  opts.Org,
@@ -65,8 +65,8 @@ func (ctrl *HideController) getParamListHiddenComments(ctx context.Context, opts
 				"sha":  opts.SHA1,
 			}).Warn("list associated prs")
 		}
-		if prNum > 0 {
-			opts.PRNumber = prNum
+		if mrNum > 0 {
+			opts.MRNumber = mrNum
 		}
 	}
 
@@ -102,7 +102,7 @@ func (ctrl *HideController) getParamListHiddenComments(ctx context.Context, opts
 	}
 
 	return &ParamListHiddenComments{
-		PRNumber:  opts.PRNumber,
+		MRNumber:  opts.MRNumber,
 		Org:       opts.Org,
 		Repo:      opts.Repo,
 		SHA1:      opts.SHA1,
@@ -112,13 +112,13 @@ func (ctrl *HideController) getParamListHiddenComments(ctx context.Context, opts
 	}, nil
 }
 
-func hideComments(ctx context.Context, commenter GitHub, nodeIDs []string) {
+func hideComments(ctx context.Context, gl Gitlab, nodeIDs []int) {
 	logE := logrus.WithFields(logrus.Fields{
-		"program": "github-comment",
+		"program": "gitlab-comment",
 	})
 	commentHidden := false
 	for _, nodeID := range nodeIDs {
-		if err := commenter.HideComment(ctx, nodeID); err != nil {
+		if err := gl.HideComment(ctx, nodeID); err != nil {
 			logE.WithError(err).WithFields(logrus.Fields{
 				"node_id": nodeID,
 			}).Error("hide an old comment")
@@ -140,64 +140,52 @@ type ParamListHiddenComments struct {
 	Org       string
 	Repo      string
 	SHA1      string
-	PRNumber  int
+	MRNumber  int
 	Vars      map[string]interface{}
 }
 
 func listHiddenComments( //nolint:funlen
 	ctx context.Context,
-	gh GitHub, exp Expr,
+	gl Gitlab, exp Expr,
 	param *ParamListHiddenComments,
 	paramExpr map[string]interface{},
-) ([]string, error) {
+) ([]int, error) {
 	logE := logrus.WithFields(logrus.Fields{
-		"program": "github-comment",
+		"program": "gitlab-comment",
 	})
 	if param.Condition == "" {
 		logE.Debug("the condition to hide comments isn't set")
 		return nil, nil
 	}
-	login, err := gh.GetAuthenticatedUser(ctx)
-	if err != nil {
-		logE.WithError(err).Warn("get an authenticated user")
-	}
 
-	comments, err := gh.ListComments(ctx, &github.PullRequest{
+	allnotes, err := gl.ListNote(ctx, &gitlab.MergeRequest{
 		Org:      param.Org,
 		Repo:     param.Repo,
-		PRNumber: param.PRNumber,
+		MRNumber: param.MRNumber,
 	})
 	if err != nil {
 		return nil, err //nolint:wrapcheck
 	}
 	logE.WithFields(logrus.Fields{
-		"count":     len(comments),
+		"count":     len(allnotes),
 		"org":       param.Org,
 		"repo":      param.Repo,
-		"pr_number": param.PRNumber,
+		"mr_number": param.MRNumber,
 	}).Debug("get comments")
 
-	nodeIDs := []string{}
+	nodeIDs := []int{}
 	prg, err := exp.Compile(param.Condition)
 	if err != nil {
 		return nil, err //nolint:wrapcheck
 	}
-	for _, comment := range comments {
-		nodeID := comment.ID
-		// TODO remove these filters
-		if isExcludedComment(comment, login) {
-			logE.WithFields(logrus.Fields{
-				"node_id": nodeID,
-				"login":   login,
-			}).Debug("exclude a comment")
-			continue
-		}
+	for _, note := range allnotes {
+		nodeID := note.ID
 
 		metadata := map[string]interface{}{}
-		hasMeta := extractMetaFromComment(comment.Body, &metadata)
+		hasMeta := extractMetaFromComment(note.Body, &metadata)
 		paramMap := map[string]interface{}{
 			"Comment": map[string]interface{}{
-				"Body": comment.Body,
+				"Body": note.Body,
 				// "CreatedAt": comment.CreatedAt,
 				"Meta":    metadata,
 				"HasMeta": hasMeta,
@@ -205,7 +193,7 @@ func listHiddenComments( //nolint:funlen
 			"Commit": map[string]interface{}{
 				"Org":      param.Org,
 				"Repo":     param.Repo,
-				"PRNumber": param.PRNumber,
+				"MRNumber": param.MRNumber,
 				"SHA1":     param.SHA1,
 			},
 			"HideKey": param.HideKey,
@@ -219,12 +207,12 @@ func listHiddenComments( //nolint:funlen
 			"node_id":   nodeID,
 			"condition": param.Condition,
 			"param":     paramMap,
-		}).Debug("judge whether an existing comment is hidden")
+		}).Debug("judge whether an existing note is hidden")
 		f, err := prg.Run(paramMap)
 		if err != nil {
 			logE.WithError(err).WithFields(logrus.Fields{
 				"node_id": nodeID,
-			}).Error("judge whether an existing comment is hidden")
+			}).Error("judge whether an existing note is hidden")
 			continue
 		}
 		if !f {
@@ -233,19 +221,4 @@ func listHiddenComments( //nolint:funlen
 		nodeIDs = append(nodeIDs, nodeID)
 	}
 	return nodeIDs, nil
-}
-
-func isExcludedComment(cmt *github.IssueComment, login string) bool {
-	if !cmt.ViewerCanMinimize {
-		return true
-	}
-	if cmt.IsMinimized {
-		return true
-	}
-	// GitHub Actions's GITHUB_TOKEN secret doesn't have a permission to get an authenticated user.
-	// So if `login` is empty, we give up filtering comments by login.
-	if login != "" && cmt.Author.Login != login {
-		return true
-	}
-	return false
 }

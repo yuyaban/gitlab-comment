@@ -1,8 +1,6 @@
 package option
 
-import (
-	"errors"
-)
+import "errors"
 
 type ExecOptions struct {
 	Options

@@ -9,16 +9,15 @@ import (
 )
 
 type Config struct {
-	Base               *Base
-	GHEBaseURL         string `yaml:"ghe_base_url"`
-	GHEGraphQLEndpoint string `yaml:"ghe_graphql_endpoint"`
-	Vars               map[string]interface{}
-	Templates          map[string]string
-	Post               map[string]*PostConfig
-	Exec               map[string][]*ExecConfig
-	Hide               map[string]string
-	SkipNoToken        bool `yaml:"skip_no_token"`
-	Silent             bool
+	Base          *Base
+	GitlabBaseURL string `yaml:"gitlab_base_url"`
+	Vars          map[string]interface{}
+	Templates     map[string]string
+	Post          map[string]*PostConfig
+	Exec          map[string][]*ExecConfig
+	Hide          map[string]string
+	SkipNoToken   bool `yaml:"skip_no_token"`
+	Silent        bool
 }
 
 type Base struct {
@@ -102,7 +101,12 @@ type Reader struct {
 }
 
 func (reader *Reader) find(wd string) (string, bool) {
-	names := []string{"github-comment.yaml", "github-comment.yml", ".github-comment.yml", ".github-comment.yaml"}
+	names := []string{
+		"gitlab-comment.yml", "gitlab-comment.yaml",
+		".gitlab-comment.yml", ".gitlab-comment.yaml",
+		"github-comment.yaml", "github-comment.yml",
+		".github-comment.yml", ".github-comment.yaml",
+	}
 	for {
 		for _, name := range names {
 			p := filepath.Join(wd, name)
