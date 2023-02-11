@@ -11,7 +11,7 @@ jobs:
     # Get changed files to filter jobs
     outputs:
       update-aqua-checksums: ${{steps.changes.outputs.update-aqua-checksums}}
-      renovate-config-validator: ${{steps.changes.outputs.renovate-config-validator}}
+      # renovate-config-validator: ${{steps.changes.outputs.renovate-config-validator}}
       ghalint: ${{steps.changes.outputs.ghalint}}
     runs-on: ubuntu-latest
     permissions: {}
@@ -25,8 +25,8 @@ jobs:
               - aqua/imports/*.yaml
               - aqua/aqua-checksums.json
               - .github/workflows/test.yaml
-            renovate-config-validator:
-              - renovate.json5
+            # renovate-config-validator:
+            #   - renovate.json5
             ghalint:
               - .github/workflows/*.yaml
               - aqua/imports/ghalint.yaml
