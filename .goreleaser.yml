@@ -39,7 +39,7 @@ brews:
 
     # GitHub/GitLab repository to push the formula to
     tap:
-      owner: yuyaban
+      owner: suzuki-shunsuke
       name: homebrew-gitlab-comment
       token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
     # The project name and current git tag are used in the format string.
