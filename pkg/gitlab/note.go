@@ -1,7 +1,6 @@
 package gitlab
 
 import (
-	"context"
 	"fmt"
 
 	gitlab "github.com/xanzy/go-gitlab"
@@ -21,7 +20,7 @@ type Note struct {
 	TemplateKey    string
 }
 
-func (client *Client) sendMRComment(ctx context.Context, note *Note, body string) error {
+func (client *Client) sendMRComment(note *Note, body string) error {
 	if note.NoteID != 0 {
 		if _, _, err := client.note.UpdateMergeRequestNote(
 			fmt.Sprintf("%s/%s", note.Org, note.Repo),
@@ -43,18 +42,18 @@ func (client *Client) sendMRComment(ctx context.Context, note *Note, body string
 	return nil
 }
 
-func (client *Client) createComment(ctx context.Context, note *Note, tooLong bool) error {
+func (client *Client) createComment(note *Note, tooLong bool) error {
 	body := note.Body
 	if tooLong {
 		body = note.BodyForTooLong
 	}
 	if note.MRNumber != 0 {
-		return client.sendMRComment(ctx, note, body)
+		return client.sendMRComment(note, body)
 	}
 	return fmt.Errorf("not yet Support sendIssueComment method")
 	// return client.sendCommitComment(ctx, note, body)
 }
 
-func (client *Client) CreateComment(ctx context.Context, note *Note) error {
-	return client.createComment(ctx, note, len(note.Body) > 65536) //nolint:gomnd
+func (client *Client) CreateComment(note *Note) error {
+	return client.createComment(note, len(note.Body) > 65536) //nolint:gomnd
 }

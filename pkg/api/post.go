@@ -31,7 +31,7 @@ type PostController struct {
 }
 
 func (ctrl *PostController) Post(ctx context.Context, opts *option.PostOptions) error {
-	note, err := ctrl.getCommentParams(ctx, opts)
+	note, err := ctrl.getCommentParams(opts)
 	if err != nil {
 		return err
 	}
@@ -50,18 +50,17 @@ func (ctrl *PostController) Post(ctx context.Context, opts *option.PostOptions) 
 	return noteCtrl.Post(ctx, note, nil)
 }
 
-func (ctrl *PostController) setUpdatedCommentID(ctx context.Context, note *gitlab.Note, updateCondition string) error { //nolint:funlen
+func (ctrl *PostController) setUpdatedCommentID(note *gitlab.Note, updateCondition string) error {
 	prg, err := ctrl.Expr.Compile(updateCondition)
 	if err != nil {
 		return err //nolint:wrapcheck
 	}
 
-	allnotes, err := ctrl.Gitlab.ListNote(ctx, &gitlab.MergeRequest{
+	allnotes, err := ctrl.Gitlab.ListNote(&gitlab.MergeRequest{
 		Org:      note.Org,
 		Repo:     note.Repo,
 		MRNumber: note.MRNumber,
 	})
-
 	if err != nil {
 		return fmt.Errorf("list merge request notes: %w", err)
 	}
@@ -138,7 +137,7 @@ type Platform interface {
 	CI() string
 }
 
-func (ctrl *PostController) getCommentParams(ctx context.Context, opts *option.PostOptions) (*gitlab.Note, error) { //nolint:funlen,cyclop,gocognit
+func (ctrl *PostController) getCommentParams(opts *option.PostOptions) (*gitlab.Note, error) { //nolint:funlen,cyclop,gocognit
 	if ctrl.Platform != nil {
 		if err := ctrl.Platform.ComplementPost(opts); err != nil {
 			return nil, fmt.Errorf("failed to complement opts with platform built in environment variables: %w", err)
@@ -146,7 +145,7 @@ func (ctrl *PostController) getCommentParams(ctx context.Context, opts *option.P
 	}
 
 	if opts.MRNumber == 0 && opts.SHA1 != "" {
-		mrNum, err := ctrl.Gitlab.MRNumberWithSHA(ctx, opts.Org, opts.Repo, opts.SHA1)
+		mrNum, err := ctrl.Gitlab.MRNumberWithSHA(opts.Org, opts.Repo, opts.SHA1)
 		if err != nil {
 			logrus.WithError(err).WithFields(logrus.Fields{
 				"org":  opts.Org,
@@ -267,7 +266,7 @@ func (ctrl *PostController) getCommentParams(ctx context.Context, opts *option.P
 		TemplateKey:    opts.TemplateKey,
 	}
 	if opts.UpdateCondition != "" && opts.MRNumber != 0 {
-		if err := ctrl.setUpdatedCommentID(ctx, &note, opts.UpdateCondition); err != nil {
+		if err := ctrl.setUpdatedCommentID(&note, opts.UpdateCondition); err != nil {
 			return nil, err
 		}
 	}

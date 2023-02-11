@@ -31,12 +31,12 @@ func (ctrl *HideController) Hide(ctx context.Context, opts *option.HideOptions) 
 	logE := logrus.WithFields(logrus.Fields{
 		"program": "gitlab-comment",
 	})
-	param, err := ctrl.getParamListHiddenComments(ctx, opts)
+	param, err := ctrl.getParamListHiddenComments(opts)
 	if err != nil {
 		return err
 	}
 	nodeIDs, err := listHiddenComments(
-		ctx, ctrl.Gitlab, ctrl.Expr, param, nil)
+		ctrl.Gitlab, ctrl.Expr, param, nil)
 	if err != nil {
 		return err
 	}
@@ -44,11 +44,11 @@ func (ctrl *HideController) Hide(ctx context.Context, opts *option.HideOptions) 
 		"count":    len(nodeIDs),
 		"node_ids": nodeIDs,
 	}).Debug("comments which would be hidden")
-	hideComments(ctx, ctrl.Gitlab, nodeIDs)
+	hideComments(ctrl.Gitlab, nodeIDs)
 	return nil
 }
 
-func (ctrl *HideController) getParamListHiddenComments(ctx context.Context, opts *option.HideOptions) (*ParamListHiddenComments, error) { //nolint:cyclop,funlen
+func (ctrl *HideController) getParamListHiddenComments(opts *option.HideOptions) (*ParamListHiddenComments, error) { //nolint:cyclop,funlen
 	param := &ParamListHiddenComments{}
 	if ctrl.Platform != nil {
 		if err := ctrl.Platform.ComplementHide(opts); err != nil {
@@ -57,7 +57,7 @@ func (ctrl *HideController) getParamListHiddenComments(ctx context.Context, opts
 	}
 
 	if opts.MRNumber == 0 && opts.SHA1 != "" {
-		mrNum, err := ctrl.Gitlab.MRNumberWithSHA(ctx, opts.Org, opts.Repo, opts.SHA1)
+		mrNum, err := ctrl.Gitlab.MRNumberWithSHA(opts.Org, opts.Repo, opts.SHA1)
 		if err != nil {
 			logrus.WithError(err).WithFields(logrus.Fields{
 				"org":  opts.Org,
@@ -112,13 +112,13 @@ func (ctrl *HideController) getParamListHiddenComments(ctx context.Context, opts
 	}, nil
 }
 
-func hideComments(ctx context.Context, gl Gitlab, nodeIDs []int) {
+func hideComments(gl Gitlab, nodeIDs []int) {
 	logE := logrus.WithFields(logrus.Fields{
 		"program": "gitlab-comment",
 	})
 	commentHidden := false
 	for _, nodeID := range nodeIDs {
-		if err := gl.HideComment(ctx, nodeID); err != nil {
+		if err := gl.HideComment(nodeID); err != nil {
 			logE.WithError(err).WithFields(logrus.Fields{
 				"node_id": nodeID,
 			}).Error("hide an old comment")
@@ -145,7 +145,6 @@ type ParamListHiddenComments struct {
 }
 
 func listHiddenComments( //nolint:funlen
-	ctx context.Context,
 	gl Gitlab, exp Expr,
 	param *ParamListHiddenComments,
 	paramExpr map[string]interface{},
@@ -158,7 +157,7 @@ func listHiddenComments( //nolint:funlen
 		return nil, nil
 	}
 
-	allnotes, err := gl.ListNote(ctx, &gitlab.MergeRequest{
+	allnotes, err := gl.ListNote(&gitlab.MergeRequest{
 		Org:      param.Org,
 		Repo:     param.Repo,
 		MRNumber: param.MRNumber,

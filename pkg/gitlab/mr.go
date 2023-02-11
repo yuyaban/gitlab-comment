@@ -1,11 +1,10 @@
 package gitlab
 
 import (
-	"context"
 	"fmt"
 )
 
-func (client *Client) MRNumberWithSHA(ctx context.Context, owner, repo, sha string) (int, error) {
+func (client *Client) MRNumberWithSHA(owner, repo, sha string) (int, error) {
 	return 0, fmt.Errorf("not yet Supported MRNumberWithSHA method")
 	// prs, _, err := client.mr.ListMergeRequestsWithCommit(ctx, owner, repo, sha, &gitlab.MergeRequestListOptions{
 	// 	State: "all",

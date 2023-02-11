@@ -1,7 +1,6 @@
 package gitlab
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/jinzhu/copier"
@@ -50,7 +49,7 @@ type MergeRequest struct {
 // 	return allComments, nil
 // }
 
-func (client *Client) listMRNote(ctx context.Context, mr *MergeRequest) ([]*Note, error) { //nolint:dupl
+func (client *Client) listMRNote(mr *MergeRequest) ([]*Note, error) {
 	notes, _, err := client.note.ListMergeRequestNotes(
 		fmt.Sprintf("%s/%s", mr.Org, mr.Repo),
 		mr.MRNumber,
@@ -68,8 +67,8 @@ func (client *Client) listMRNote(ctx context.Context, mr *MergeRequest) ([]*Note
 	return allNotes, nil
 }
 
-func (client *Client) ListNote(ctx context.Context, mr *MergeRequest) ([]*Note, error) {
-	notes, mrErr := client.listMRNote(ctx, mr)
+func (client *Client) ListNote(mr *MergeRequest) ([]*Note, error) {
+	notes, mrErr := client.listMRNote(mr)
 	if mrErr == nil {
 		return notes, nil
 	}

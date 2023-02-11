@@ -81,7 +81,7 @@ func (runner *Runner) execAction(c *cli.Context) error {
 
 	var pt api.Platform = platform.Get()
 
-	gl, err := getGitlab(c.Context, &opts.Options, cfg)
+	gl, err := getGitlab(&opts.Options, cfg)
 	if err != nil {
 		return fmt.Errorf("initialize commenter: %w", err)
 	}

@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -81,7 +80,7 @@ func parsePostOptions(opts *option.PostOptions, c *cli.Context) error {
 	return nil
 }
 
-func getGitlab(ctx context.Context, opts *option.Options, cfg *config.Config) (api.Gitlab, error) {
+func getGitlab(opts *option.Options, cfg *config.Config) (api.Gitlab, error) {
 	if opts.DryRun {
 		return &gitlab.Mock{
 			Stderr: os.Stderr,
@@ -94,7 +93,7 @@ func getGitlab(ctx context.Context, opts *option.Options, cfg *config.Config) (a
 			Silent: opts.Silent,
 		}, nil
 	}
-	return gitlab.New(ctx, &gitlab.ParamNew{ //nolint:wrapcheck
+	return gitlab.New(&gitlab.ParamNew{ //nolint:wrapcheck
 		Token:         opts.Token,
 		GitlabBaseURL: cfg.GitlabBaseURL,
 	})
@@ -147,7 +146,7 @@ func (runner *Runner) postAction(c *cli.Context) error {
 
 	var pt api.Platform = platform.Get()
 
-	gl, err := getGitlab(c.Context, &opts.Options, cfg)
+	gl, err := getGitlab(&opts.Options, cfg)
 	if err != nil {
 		return fmt.Errorf("initialize commenter: %w", err)
 	}

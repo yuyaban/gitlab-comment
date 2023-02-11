@@ -17,7 +17,7 @@ type ParamGetTemplates struct {
 	CombinedOutput string
 }
 
-func GetTemplates(param *ParamGetTemplates) map[string]string {
+func GetTemplates(param *ParamGetTemplates) map[string]string { //nolint:funlen
 	cloudBuildRegion := os.Getenv("_REGION")
 	if cloudBuildRegion == "" {
 		cloudBuildRegion = "global"

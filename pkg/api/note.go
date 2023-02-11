@@ -10,11 +10,10 @@ import (
 
 // Gitlab is API to post a comment to GitHub
 type Gitlab interface {
-	CreateComment(ctx context.Context, note *gitlab.Note) error
-	ListNote(ctx context.Context, mr *gitlab.MergeRequest) ([]*gitlab.Note, error)
-	HideComment(ctx context.Context, nodeID int) error
-	// GetAuthenticatedUser(ctx context.Context) (string, error)
-	MRNumberWithSHA(ctx context.Context, owner, repo, sha string) (int, error)
+	CreateComment(note *gitlab.Note) error
+	ListNote(mr *gitlab.MergeRequest) ([]*gitlab.Note, error)
+	HideComment(nodeID int) error
+	MRNumberWithSHA(owner, repo, sha string) (int, error)
 }
 
 type NoteController struct {
@@ -25,7 +24,7 @@ type NoteController struct {
 }
 
 func (ctrl *NoteController) Post(ctx context.Context, note *gitlab.Note, hiddenParam map[string]interface{}) error {
-	if err := ctrl.Gitlab.CreateComment(ctx, note); err != nil {
+	if err := ctrl.Gitlab.CreateComment(note); err != nil {
 		return fmt.Errorf("send a comment: %w", err)
 	}
 	return nil
