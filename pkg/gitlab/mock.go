@@ -1,7 +1,6 @@
 package gitlab
 
 import (
-	"context"
 	"fmt"
 	"io"
 	"strconv"
@@ -14,7 +13,7 @@ type Mock struct {
 	MRNumber int
 }
 
-func (mock *Mock) CreateComment(ctx context.Context, note *Note) error {
+func (mock *Mock) CreateComment(note *Note) error {
 	if mock.Silent {
 		return nil
 	}
@@ -26,18 +25,14 @@ func (mock *Mock) CreateComment(ctx context.Context, note *Note) error {
 	return nil
 }
 
-func (mock *Mock) HideComment(ctx context.Context, nodeID int) error {
+func (mock *Mock) HideComment(nodeID int) error {
 	return nil
 }
 
-func (mock *Mock) ListNote(ctx context.Context, mr *MergeRequest) ([]*Note, error) {
+func (mock *Mock) ListNote(mr *MergeRequest) ([]*Note, error) {
 	return nil, nil
 }
 
-func (mock *Mock) GetAuthenticatedUser(ctx context.Context) (string, error) {
-	return mock.Login, nil
-}
-
-func (mock *Mock) MRNumberWithSHA(ctx context.Context, owner, repo, sha string) (int, error) {
+func (mock *Mock) MRNumberWithSHA(owner, repo, sha string) (int, error) {
 	return mock.MRNumber, nil
 }

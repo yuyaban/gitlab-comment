@@ -9,7 +9,7 @@ import (
 )
 
 type Platform struct {
-	platformId string
+	PlatformID string
 }
 
 func (pt *Platform) getRepoOrg() (string, error) { //nolint:unparam
@@ -35,7 +35,6 @@ func (pt *Platform) getSHA1() (string, error) { //nolint:unparam
 }
 
 func (pt *Platform) getMRNumber() (int, error) {
-
 	if mr := os.Getenv("CI_MERGE_REQUEST_IID"); mr != "" {
 		a, err := strconv.Atoi(mr)
 		if err != nil {
@@ -88,7 +87,7 @@ func (pt *Platform) ComplementHide(opts *option.HideOptions) error {
 }
 
 func (pt *Platform) CI() string {
-	return pt.platformId
+	return pt.PlatformID
 }
 
 func (pt *Platform) ComplementExec(opts *option.ExecOptions) error {
@@ -97,6 +96,6 @@ func (pt *Platform) ComplementExec(opts *option.ExecOptions) error {
 
 func Get() *Platform {
 	return &Platform{
-		platformId: "gitlab-ci",
+		PlatformID: "gitlab-ci",
 	}
 }

@@ -40,7 +40,7 @@ func (ctrl *ExecController) Exec(ctx context.Context, opts *option.ExecOptions) 
 	}
 
 	if opts.MRNumber == 0 && opts.SHA1 != "" {
-		mrNum, err := ctrl.Gitlab.MRNumberWithSHA(ctx, opts.Org, opts.Repo, opts.SHA1)
+		mrNum, err := ctrl.Gitlab.MRNumberWithSHA(opts.Org, opts.Repo, opts.SHA1)
 		if err != nil {
 			logrus.WithError(err).WithFields(logrus.Fields{
 				"org":  opts.Org,

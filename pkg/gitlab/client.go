@@ -1,7 +1,6 @@
 package gitlab
 
 import (
-	"context"
 	"errors"
 
 	gitlab "github.com/xanzy/go-gitlab"
@@ -17,7 +16,7 @@ type ParamNew struct {
 	GitlabBaseURL string
 }
 
-func New(ctx context.Context, param *ParamNew) (*Client, error) {
+func New(param *ParamNew) (*Client, error) {
 	client := &Client{}
 
 	if param.Token == "" {
