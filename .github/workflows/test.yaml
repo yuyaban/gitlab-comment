@@ -60,7 +60,8 @@ jobs:
         with:
           aqua_version: v1.33.0
       - name: test
-        run: go test -v ./... -race -covermode=atomic
+      - run: golangci-lint run
+      - run: go test -v ./... -race -covermode=atomic
 
   build:
     runs-on: ubuntu-latest
