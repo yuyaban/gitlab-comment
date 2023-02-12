@@ -11,7 +11,6 @@ type Note struct {
 	MRNumber       int
 	Org            string
 	Repo           string
-	NoteID         int
 	Body           string
 	BodyForTooLong string
 	SHA1           string
@@ -21,11 +20,11 @@ type Note struct {
 }
 
 func (client *Client) sendMRComment(note *Note, body string) error {
-	if note.NoteID != 0 {
+	if note.ID != 0 {
 		if _, _, err := client.note.UpdateMergeRequestNote(
 			fmt.Sprintf("%s/%s", note.Org, note.Repo),
 			note.MRNumber,
-			note.NoteID,
+			note.ID,
 			&gitlab.UpdateMergeRequestNoteOptions{Body: gitlab.String(body)},
 		); err != nil {
 			return fmt.Errorf("edit a merge request note by Gitlab API: %w", err)

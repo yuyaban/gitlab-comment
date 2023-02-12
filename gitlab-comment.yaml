@@ -10,6 +10,7 @@ post:
 exec:
   hello:
     - when: ExitCode != 0
+      # update: 'Comment.HasMeta && Comment.Meta.TemplateKey == "hello"'
       template: |
         failure
         exit code: {{.ExitCode}}
@@ -17,6 +18,7 @@ exec:
         stderr: {{.Stderr}}
         combined output: {{.CombinedOutput}}
     - when: true
+      # update: 'Comment.HasMeta && Comment.Meta.TemplateKey == "hello"'
       template: |
         exit code: {{.ExitCode}}
         stdout: {{.Stdout}}

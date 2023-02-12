@@ -4,8 +4,9 @@ import "errors"
 
 type ExecOptions struct {
 	Options
-	Args        []string
-	SkipComment bool
+	Args            []string
+	SkipComment     bool
+	UpdateCondition string
 }
 
 func ValidateExec(opts *ExecOptions) error {

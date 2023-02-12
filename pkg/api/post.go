@@ -51,7 +51,8 @@ func (ctrl *PostController) Post(ctx context.Context, opts *option.PostOptions) 
 }
 
 func (ctrl *PostController) setUpdatedCommentID(note *gitlab.Note, updateCondition string) error {
-	prg, err := ctrl.Expr.Compile(updateCondition)
+	customUpdateCondition := fmt.Sprintf("%s && Comment.Meta.Vars.target == \"%s\"", updateCondition, ctrl.Config.Vars["target"])
+	prg, err := ctrl.Expr.Compile(customUpdateCondition)
 	if err != nil {
 		return err //nolint:wrapcheck
 	}
@@ -103,7 +104,7 @@ func (ctrl *PostController) setUpdatedCommentID(note *gitlab.Note, updateConditi
 		if !f {
 			continue
 		}
-		note.NoteID = n.ID
+		note.ID = n.ID
 		break
 	}
 	return nil
@@ -135,6 +136,15 @@ type Platform interface {
 	ComplementExec(opts *option.ExecOptions) error
 	ComplementHide(opts *option.HideOptions) error
 	CI() string
+}
+
+func contains(elems []string, v string) bool {
+	for _, s := range elems {
+		if v == s {
+			return true
+		}
+	}
+	return false
 }
 
 func (ctrl *PostController) getCommentParams(opts *option.PostOptions) (*gitlab.Note, error) { //nolint:funlen,cyclop,gocognit
@@ -187,6 +197,9 @@ func (ctrl *PostController) getCommentParams(opts *option.PostOptions) (*gitlab.
 		opts.Template = tpl.Template
 		opts.TemplateForTooLong = tpl.TemplateForTooLong
 		opts.EmbeddedVarNames = tpl.EmbeddedVarNames
+		if !contains(opts.EmbeddedVarNames, "target") {
+			opts.EmbeddedVarNames = append(opts.EmbeddedVarNames, "target")
+		}
 		if opts.UpdateCondition == "" {
 			opts.UpdateCondition = tpl.UpdateCondition
 		}
@@ -197,6 +210,9 @@ func (ctrl *PostController) getCommentParams(opts *option.PostOptions) (*gitlab.
 	}
 	for k, v := range opts.Vars {
 		cfg.Vars[k] = v
+	}
+	if cfg.Vars["target"] == nil {
+		cfg.Vars["target"] = ""
 	}
 
 	ci := ""
