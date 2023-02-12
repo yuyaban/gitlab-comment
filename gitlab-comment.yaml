@@ -5,7 +5,7 @@ post:
   hello:
     # update: 'Comment.HasMeta && Comment.Meta.TemplateKey == "hello"'
     template: |
-      $Hello: foo {{ "hello!" | upper | repeat 5 }}
+      $Hello: foo {{ "hello!" | upper | repeat 5 }} {{Env "HELLO"}}
 
 exec:
   hello:
