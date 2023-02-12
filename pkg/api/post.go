@@ -23,7 +23,7 @@ type PostController struct {
 	HasStdin func() bool
 	Stdin    io.Reader
 	Stderr   io.Writer
-	Gitlab   Gitlab
+	GitLab   GitLab
 	Renderer Renderer
 	Platform Platform
 	Config   *config.Config
@@ -43,7 +43,7 @@ func (ctrl *PostController) Post(ctx context.Context, opts *option.PostOptions) 
 	}).Debug("note meta data")
 
 	noteCtrl := NoteController{
-		Gitlab: ctrl.Gitlab,
+		GitLab: ctrl.GitLab,
 		Expr:   ctrl.Expr,
 		Getenv: ctrl.Getenv,
 	}
@@ -57,7 +57,7 @@ func (ctrl *PostController) setUpdatedCommentID(note *gitlab.Note, updateConditi
 		return err //nolint:wrapcheck
 	}
 
-	allnotes, err := ctrl.Gitlab.ListNote(&gitlab.MergeRequest{
+	allnotes, err := ctrl.GitLab.ListNote(&gitlab.MergeRequest{
 		Org:      note.Org,
 		Repo:     note.Repo,
 		MRNumber: note.MRNumber,
@@ -155,7 +155,7 @@ func (ctrl *PostController) getCommentParams(opts *option.PostOptions) (*gitlab.
 	}
 
 	if opts.MRNumber == 0 && opts.SHA1 != "" {
-		mrNum, err := ctrl.Gitlab.MRNumberWithSHA(opts.Org, opts.Repo, opts.SHA1)
+		mrNum, err := ctrl.GitLab.MRNumberWithSHA(opts.Org, opts.Repo, opts.SHA1)
 		if err != nil {
 			logrus.WithError(err).WithFields(logrus.Fields{
 				"org":  opts.Org,
@@ -247,7 +247,7 @@ func (ctrl *PostController) getCommentParams(opts *option.PostOptions) (*gitlab.
 	}
 
 	noteCtrl := NoteController{
-		Gitlab:   ctrl.Gitlab,
+		GitLab:   ctrl.GitLab,
 		Expr:     ctrl.Expr,
 		Getenv:   ctrl.Getenv,
 		Platform: ctrl.Platform,

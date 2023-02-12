@@ -8,8 +8,8 @@ import (
 	"github.com/yuyaban/gitlab-comment/pkg/gitlab"
 )
 
-// Gitlab is API to post a comment to GitHub
-type Gitlab interface {
+// GitLab is API to post a comment to GitHub
+type GitLab interface {
 	CreateComment(note *gitlab.Note) error
 	ListNote(mr *gitlab.MergeRequest) ([]*gitlab.Note, error)
 	HideComment(nodeID int) error
@@ -17,14 +17,14 @@ type Gitlab interface {
 }
 
 type NoteController struct {
-	Gitlab   Gitlab
+	GitLab   GitLab
 	Expr     Expr
 	Getenv   func(string) string
 	Platform Platform
 }
 
 func (ctrl *NoteController) Post(ctx context.Context, note *gitlab.Note, hiddenParam map[string]interface{}) error {
-	if err := ctrl.Gitlab.CreateComment(note); err != nil {
+	if err := ctrl.GitLab.CreateComment(note); err != nil {
 		return fmt.Errorf("send a comment: %w", err)
 	}
 	return nil

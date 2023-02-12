@@ -27,7 +27,7 @@ func (client *Client) sendMRComment(note *Note, body string) error {
 			note.ID,
 			&gitlab.UpdateMergeRequestNoteOptions{Body: gitlab.String(body)},
 		); err != nil {
-			return fmt.Errorf("edit a merge request note by Gitlab API: %w", err)
+			return fmt.Errorf("edit a merge request note by GitLab API: %w", err)
 		}
 		return nil
 	}
@@ -36,7 +36,7 @@ func (client *Client) sendMRComment(note *Note, body string) error {
 		note.MRNumber,
 		&gitlab.CreateMergeRequestNoteOptions{Body: gitlab.String(body)},
 	); err != nil {
-		return fmt.Errorf("create a note to merge request by Gitlab API: %w", err)
+		return fmt.Errorf("create a note to merge request by GitLab API: %w", err)
 	}
 	return nil
 }

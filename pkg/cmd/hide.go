@@ -72,7 +72,7 @@ func (runner *Runner) hideAction(c *cli.Context) error {
 
 	// var pt api.Platform = platform.Get()
 
-	// gl, err := getGitlab(c.Context, &opts.Options, cfg)
+	// gl, err := getGitLab(c.Context, &opts.Options, cfg)
 	// if err != nil {
 	// 	return fmt.Errorf("initialize commenter: %w", err)
 	// }
@@ -84,7 +84,7 @@ func (runner *Runner) hideAction(c *cli.Context) error {
 	// 		return !term.IsTerminal(0)
 	// 	},
 	// 	Stderr:   runner.Stderr,
-	// 	Gitlab:   gl,
+	// 	GitLab:   gl,
 	// 	Platform: pt,
 	// 	Config:   cfg,
 	// 	Expr:     &expr.Expr{},

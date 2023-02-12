@@ -27,7 +27,7 @@ func (flags *LDFlags) AppVersion() string {
 func (runner *Runner) Run(ctx context.Context, args []string) error { //nolint:funlen
 	app := cli.App{
 		Name:    "gitlab-comment",
-		Usage:   "post a comment to Gitlab",
+		Usage:   "post a comment to GitLab",
 		Version: runner.LDFlags.AppVersion(),
 		Commands: []*cli.Command{
 			{
@@ -37,15 +37,15 @@ func (runner *Runner) Run(ctx context.Context, args []string) error { //nolint:f
 				Flags: []cli.Flag{
 					&cli.StringFlag{
 						Name:  "org",
-						Usage: "Gitlab organization name",
+						Usage: "GitLab organization name",
 					},
 					&cli.StringFlag{
 						Name:  "repo",
-						Usage: "Gitlab repository name",
+						Usage: "GitLab repository name",
 					},
 					&cli.StringFlag{
 						Name:    "token",
-						Usage:   "Gitlab API token",
+						Usage:   "GitLab API token",
 						EnvVars: []string{"GITLAB_TOKEN", "GITLAB_ACCESS_TOKEN"},
 					},
 					&cli.StringFlag{
@@ -68,7 +68,7 @@ func (runner *Runner) Run(ctx context.Context, args []string) error { //nolint:f
 					},
 					&cli.IntFlag{
 						Name:  "mr",
-						Usage: "Gitlab merge request number",
+						Usage: "GitLab merge request number",
 					},
 					&cli.StringSliceFlag{
 						Name:  "var",
@@ -80,12 +80,12 @@ func (runner *Runner) Run(ctx context.Context, args []string) error { //nolint:f
 					},
 					&cli.BoolFlag{
 						Name:  "dry-run",
-						Usage: "output a comment to standard error output instead of posting to Gitlab",
+						Usage: "output a comment to standard error output instead of posting to GitLab",
 					},
 					&cli.BoolFlag{
 						Name:    "skip-no-token",
 						Aliases: []string{"n"},
-						Usage:   "works like dry-run if the Gitlab Access Token isn't set",
+						Usage:   "works like dry-run if the GitLab Access Token isn't set",
 						EnvVars: []string{"GITLAB_COMMENT_SKIP_NO_TOKEN"},
 					},
 					&cli.BoolFlag{
@@ -111,15 +111,15 @@ func (runner *Runner) Run(ctx context.Context, args []string) error { //nolint:f
 				Flags: []cli.Flag{
 					&cli.StringFlag{
 						Name:  "org",
-						Usage: "Gitlab organization name",
+						Usage: "GitLab organization name",
 					},
 					&cli.StringFlag{
 						Name:  "repo",
-						Usage: "Gitlab repository name",
+						Usage: "GitLab repository name",
 					},
 					&cli.StringFlag{
 						Name:    "token",
-						Usage:   "Gitlab API token",
+						Usage:   "GitLab API token",
 						EnvVars: []string{"GITLAB_TOKEN", "GITLAB_ACCESS_TOKEN"},
 					},
 					&cli.StringFlag{
@@ -142,7 +142,7 @@ func (runner *Runner) Run(ctx context.Context, args []string) error { //nolint:f
 					},
 					&cli.IntFlag{
 						Name:  "mr",
-						Usage: "Gitlab merge request number",
+						Usage: "GitLab merge request number",
 					},
 					&cli.StringSliceFlag{
 						Name:  "var",
@@ -154,12 +154,12 @@ func (runner *Runner) Run(ctx context.Context, args []string) error { //nolint:f
 					},
 					&cli.BoolFlag{
 						Name:  "dry-run",
-						Usage: "output a comment to standard error output instead of posting to Gitlab",
+						Usage: "output a comment to standard error output instead of posting to GitLab",
 					},
 					&cli.BoolFlag{
 						Name:    "skip-no-token",
 						Aliases: []string{"n"},
-						Usage:   "works like dry-run if the Gitlab Access Token isn't set",
+						Usage:   "works like dry-run if the GitLab Access Token isn't set",
 						EnvVars: []string{"GITLAB_COMMENT_SKIP_NO_TOKEN"},
 					},
 					&cli.BoolFlag{
@@ -186,15 +186,15 @@ func (runner *Runner) Run(ctx context.Context, args []string) error { //nolint:f
 				Flags: []cli.Flag{
 					&cli.StringFlag{
 						Name:  "org",
-						Usage: "Gitlab organization name",
+						Usage: "GitLab organization name",
 					},
 					&cli.StringFlag{
 						Name:  "repo",
-						Usage: "Gitlab repository name",
+						Usage: "GitLab repository name",
 					},
 					&cli.StringFlag{
 						Name:    "token",
-						Usage:   "Gitlab API token",
+						Usage:   "GitLab API token",
 						EnvVars: []string{"GITLAB_TOKEN", "GITLAB_ACCESS_TOKEN"},
 					},
 					&cli.StringFlag{
@@ -213,7 +213,7 @@ func (runner *Runner) Run(ctx context.Context, args []string) error { //nolint:f
 					},
 					&cli.IntFlag{
 						Name:  "mr",
-						Usage: "Gitlab merge request number",
+						Usage: "GitLab merge request number",
 					},
 					&cli.StringFlag{
 						Name:  "sha1",
@@ -229,12 +229,12 @@ func (runner *Runner) Run(ctx context.Context, args []string) error { //nolint:f
 					},
 					&cli.BoolFlag{
 						Name:  "dry-run",
-						Usage: "output a comment to standard error output instead of posting to Gitlab",
+						Usage: "output a comment to standard error output instead of posting to GitLab",
 					},
 					&cli.BoolFlag{
 						Name:    "skip-no-token",
 						Aliases: []string{"n"},
-						Usage:   "works like dry-run if the Gitlab Access Token isn't set",
+						Usage:   "works like dry-run if the GitLab Access Token isn't set",
 						EnvVars: []string{"GITLAB_COMMENT_SKIP_NO_TOKEN"},
 					},
 					&cli.BoolFlag{
