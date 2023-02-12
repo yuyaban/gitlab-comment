@@ -10,7 +10,7 @@ import (
 
 type Config struct {
 	Base          *Base
-	GitlabBaseURL string `yaml:"gitlab_base_url"`
+	GitLabBaseURL string `yaml:"gitlab_base_url"`
 	Vars          map[string]interface{}
 	Templates     map[string]string
 	Post          map[string]*PostConfig

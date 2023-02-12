@@ -24,7 +24,7 @@ type ExecController struct {
 	Stderr   io.Writer
 	Getenv   func(string) string
 	Reader   Reader
-	Gitlab   Gitlab
+	GitLab   GitLab
 	Renderer Renderer
 	Executor Executor
 	Expr     Expr
@@ -40,7 +40,7 @@ func (ctrl *ExecController) Exec(ctx context.Context, opts *option.ExecOptions) 
 	}
 
 	if opts.MRNumber == 0 && opts.SHA1 != "" {
-		mrNum, err := ctrl.Gitlab.MRNumberWithSHA(opts.Org, opts.Repo, opts.SHA1)
+		mrNum, err := ctrl.GitLab.MRNumberWithSHA(opts.Org, opts.Repo, opts.SHA1)
 		if err != nil {
 			logrus.WithError(err).WithFields(logrus.Fields{
 				"org":  opts.Org,
@@ -241,7 +241,7 @@ func (ctrl *ExecController) getComment(execConfigs []*config.ExecConfig, cmtPara
 	}
 
 	noteCtrl := NoteController{
-		Gitlab:   ctrl.Gitlab,
+		GitLab:   ctrl.GitLab,
 		Expr:     ctrl.Expr,
 		Getenv:   ctrl.Getenv,
 		Platform: ctrl.Platform,
@@ -296,7 +296,7 @@ func (ctrl *ExecController) setUpdatedCommentID(note *gitlab.Note, updateConditi
 		return err //nolint:wrapcheck
 	}
 
-	allnotes, err := ctrl.Gitlab.ListNote(&gitlab.MergeRequest{
+	allnotes, err := ctrl.GitLab.ListNote(&gitlab.MergeRequest{
 		Org:      note.Org,
 		Repo:     note.Repo,
 		MRNumber: note.MRNumber,
@@ -367,7 +367,7 @@ func (ctrl *ExecController) post(
 	}).Debug("comment meta data")
 
 	noteCtrl := NoteController{
-		Gitlab: ctrl.Gitlab,
+		GitLab: ctrl.GitLab,
 		Expr:   ctrl.Expr,
 		Getenv: ctrl.Getenv,
 	}

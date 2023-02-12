@@ -13,7 +13,7 @@ type Client struct {
 
 type ParamNew struct {
 	Token         string
-	GitlabBaseURL string
+	GitLabBaseURL string
 }
 
 func New(param *ParamNew) (*Client, error) {
@@ -28,7 +28,7 @@ func New(param *ParamNew) (*Client, error) {
 		return client, errors.New("failed to create a new gitlab api client")
 	}
 
-	if baseURL := param.GitlabBaseURL; baseURL != "" {
+	if baseURL := param.GitLabBaseURL; baseURL != "" {
 		gl, err = gitlab.NewClient(param.Token, gitlab.WithBaseURL(baseURL))
 		if err != nil {
 			return &Client{}, errors.New("failed to create a new gitlab api client")

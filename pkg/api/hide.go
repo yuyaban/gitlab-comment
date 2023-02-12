@@ -21,7 +21,7 @@ type HideController struct {
 	// If thre is the standard input, it is treated as the comment template
 	HasStdin func() bool
 	Stderr   io.Writer
-	Gitlab   Gitlab
+	GitLab   GitLab
 	Platform Platform
 	Config   *config.Config
 	Expr     Expr
@@ -36,7 +36,7 @@ func (ctrl *HideController) Hide(ctx context.Context, opts *option.HideOptions) 
 		return err
 	}
 	nodeIDs, err := listHiddenComments(
-		ctrl.Gitlab, ctrl.Expr, param, nil)
+		ctrl.GitLab, ctrl.Expr, param, nil)
 	if err != nil {
 		return err
 	}
@@ -44,7 +44,7 @@ func (ctrl *HideController) Hide(ctx context.Context, opts *option.HideOptions) 
 		"count":    len(nodeIDs),
 		"node_ids": nodeIDs,
 	}).Debug("comments which would be hidden")
-	hideComments(ctrl.Gitlab, nodeIDs)
+	hideComments(ctrl.GitLab, nodeIDs)
 	return nil
 }
 
@@ -57,7 +57,7 @@ func (ctrl *HideController) getParamListHiddenComments(opts *option.HideOptions)
 	}
 
 	if opts.MRNumber == 0 && opts.SHA1 != "" {
-		mrNum, err := ctrl.Gitlab.MRNumberWithSHA(opts.Org, opts.Repo, opts.SHA1)
+		mrNum, err := ctrl.GitLab.MRNumberWithSHA(opts.Org, opts.Repo, opts.SHA1)
 		if err != nil {
 			logrus.WithError(err).WithFields(logrus.Fields{
 				"org":  opts.Org,
@@ -112,7 +112,7 @@ func (ctrl *HideController) getParamListHiddenComments(opts *option.HideOptions)
 	}, nil
 }
 
-func hideComments(gl Gitlab, nodeIDs []int) {
+func hideComments(gl GitLab, nodeIDs []int) {
 	logE := logrus.WithFields(logrus.Fields{
 		"program": "gitlab-comment",
 	})
@@ -145,7 +145,7 @@ type ParamListHiddenComments struct {
 }
 
 func listHiddenComments( //nolint:funlen
-	gl Gitlab, exp Expr,
+	gl GitLab, exp Expr,
 	param *ParamListHiddenComments,
 	paramExpr map[string]interface{},
 ) ([]int, error) {
