@@ -92,6 +92,7 @@ type ExecConfig struct {
 	TemplateForTooLong string   `yaml:"template_for_too_long"`
 	DontComment        bool     `yaml:"dont_comment"`
 	EmbeddedVarNames   []string `yaml:"embedded_var_names"`
+	UpdateCondition    string   `yaml:"update"`
 }
 
 type ExistFile func(string) bool

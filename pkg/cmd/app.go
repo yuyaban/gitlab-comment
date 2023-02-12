@@ -167,6 +167,11 @@ func (runner *Runner) Run(ctx context.Context, args []string) error { //nolint:f
 						Aliases: []string{"s"},
 						Usage:   "suppress the output of dry-run and skip-no-token",
 					},
+					&cli.StringFlag{
+						Name:    "update-condition",
+						Aliases: []string{"u"},
+						Usage:   "update the comment that matches with the condition",
+					},
 				},
 			},
 			{

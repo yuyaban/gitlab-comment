@@ -28,6 +28,7 @@ func parseExecOptions(opts *option.ExecOptions, c *cli.Context) error {
 	opts.DryRun = c.Bool("dry-run")
 	opts.SkipNoToken = c.Bool("skip-no-token")
 	opts.Silent = c.Bool("silent")
+	opts.UpdateCondition = c.String("update-condition")
 	opts.LogLevel = c.String("log-level")
 
 	vars, err := parseVarsFlag(c.StringSlice("var"))

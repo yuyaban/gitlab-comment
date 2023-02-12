@@ -46,7 +46,7 @@ func TestPostController_getCommentParams(t *testing.T) { //nolint:funlen
 				Org:      "yuyaban",
 				Repo:     "gitlab-comment",
 				MRNumber: 1,
-				Vars:     map[string]interface{}{},
+				Vars:     map[string]interface{}{"target": ""},
 			},
 		},
 		{
@@ -75,7 +75,7 @@ func TestPostController_getCommentParams(t *testing.T) { //nolint:funlen
 				Org:      "yuyaban",
 				Repo:     "gitlab-comment",
 				MRNumber: 1,
-				Vars:     map[string]interface{}{},
+				Vars:     map[string]interface{}{"target": ""},
 			},
 		},
 		{
@@ -114,7 +114,7 @@ func TestPostController_getCommentParams(t *testing.T) { //nolint:funlen
 				Repo:        "gitlab-comment",
 				MRNumber:    1,
 				TemplateKey: "default",
-				Vars:        map[string]interface{}{},
+				Vars:        map[string]interface{}{"target": ""},
 			},
 		},
 		{
@@ -149,7 +149,7 @@ func TestPostController_getCommentParams(t *testing.T) { //nolint:funlen
 				Org:      "yuyaban",
 				Repo:     "gitlab-comment",
 				MRNumber: 1,
-				Vars:     map[string]interface{}{},
+				Vars:     map[string]interface{}{"target": ""},
 			},
 		},
 		{
@@ -181,7 +181,7 @@ func TestPostController_getCommentParams(t *testing.T) { //nolint:funlen
 				Org:      "yuyaban",
 				Repo:     "gitlab-comment",
 				MRNumber: 1,
-				Vars:     map[string]interface{}{},
+				Vars:     map[string]interface{}{"target": ""},
 			},
 		},
 	}
