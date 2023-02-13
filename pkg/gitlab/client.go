@@ -2,6 +2,7 @@ package gitlab
 
 import (
 	"errors"
+	"os"
 
 	gitlab "github.com/xanzy/go-gitlab"
 )
@@ -28,7 +29,7 @@ func New(param *ParamNew) (*Client, error) {
 		return client, errors.New("failed to create a new gitlab api client")
 	}
 
-	if baseURL := param.GitLabBaseURL; baseURL != "" {
+	if baseURL := getBaseURL(param); baseURL != "" {
 		gl, err = gitlab.NewClient(param.Token, gitlab.WithBaseURL(baseURL))
 		if err != nil {
 			return &Client{}, errors.New("failed to create a new gitlab api client")
@@ -39,6 +40,18 @@ func New(param *ParamNew) (*Client, error) {
 	client.mr = gl.MergeRequests
 
 	return client, nil
+}
+
+func getBaseURL(param *ParamNew) string {
+	if param.GitLabBaseURL != "" {
+		return param.GitLabBaseURL
+	}
+
+	if os.Getenv("CI_SERVER_URL") != "" {
+		return os.Getenv("CI_SERVER_URL")
+	}
+
+	return ""
 }
 
 type NoteServices interface {
