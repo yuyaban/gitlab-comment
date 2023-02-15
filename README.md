@@ -6,7 +6,7 @@
 [![License](http://img.shields.io/badge/license-mit-blue.svg?style=flat-square)](https://raw.githubusercontent.com/yuyaban/gitlab-comment/main/LICENSE)
 
 CLI to create GitLab Notes by GitLab REST API  
-Fork of [suzuki-shunsuke/github-comment](https://github.com/suzuki-shunsuke/github-comment), supporting GitLab (dropped GitLab support).
+Fork of [suzuki-shunsuke/github-comment](https://github.com/suzuki-shunsuke/github-comment), supporting GitLab (dropped GitHub support).
 
 ## Document
 ### Prerequisites
