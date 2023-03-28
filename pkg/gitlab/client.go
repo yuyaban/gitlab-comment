@@ -9,7 +9,7 @@ import (
 
 type Client struct {
 	note NoteServices
-	mr   MergeRewuestsService
+	mr   MergeRequestsService
 }
 
 type ParamNew struct {
@@ -59,4 +59,4 @@ type NoteServices interface {
 	UpdateMergeRequestNote(pid interface{}, mergeRequest, note int, opt *gitlab.UpdateMergeRequestNoteOptions, options ...gitlab.RequestOptionFunc) (*gitlab.Note, *gitlab.Response, error)
 	ListMergeRequestNotes(pid interface{}, mergeRequest int, opt *gitlab.ListMergeRequestNotesOptions, options ...gitlab.RequestOptionFunc) ([]*gitlab.Note, *gitlab.Response, error)
 }
-type MergeRewuestsService interface{}
+type MergeRequestsService interface{}
