@@ -42,7 +42,7 @@ func (pt *Platform) getMRNumber() (int, error) {
 		}
 		return a, nil
 	}
-	return 0, fmt.Errorf("parse CI_MERGE_REQUEST_IID")
+	return 0, nil
 }
 
 func (pt *Platform) complement(opts *option.Options) error {

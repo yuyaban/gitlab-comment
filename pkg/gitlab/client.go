@@ -8,8 +8,9 @@ import (
 )
 
 type Client struct {
-	note NoteServices
-	mr   MergeRewuestsService
+	note   NoteServices
+	mr     MergeRequestsService
+	commit CommitService
 }
 
 type ParamNew struct {
@@ -38,6 +39,7 @@ func New(param *ParamNew) (*Client, error) {
 
 	client.note = gl.Notes
 	client.mr = gl.MergeRequests
+	client.commit = gl.Commits
 
 	return client, nil
 }
@@ -59,4 +61,9 @@ type NoteServices interface {
 	UpdateMergeRequestNote(pid interface{}, mergeRequest, note int, opt *gitlab.UpdateMergeRequestNoteOptions, options ...gitlab.RequestOptionFunc) (*gitlab.Note, *gitlab.Response, error)
 	ListMergeRequestNotes(pid interface{}, mergeRequest int, opt *gitlab.ListMergeRequestNotesOptions, options ...gitlab.RequestOptionFunc) ([]*gitlab.Note, *gitlab.Response, error)
 }
-type MergeRewuestsService interface{}
+
+type MergeRequestsService interface{}
+
+type CommitService interface {
+	ListMergeRequestsByCommit(pid interface{}, sha string, options ...gitlab.RequestOptionFunc) ([]*gitlab.MergeRequest, *gitlab.Response, error)
+}
