@@ -10,7 +10,7 @@ func (client *Client) MRNumberWithSHA(owner, repo, sha string) (int, error) {
 		sha,
 	)
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("list associated pull requests: %w", err)
 	}
 
 	if len(mrList) == 0 {
