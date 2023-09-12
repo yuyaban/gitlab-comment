@@ -197,12 +197,13 @@ func (ctrl *PostController) getCommentParams(opts *option.PostOptions) (*gitlab.
 		opts.Template = tpl.Template
 		opts.TemplateForTooLong = tpl.TemplateForTooLong
 		opts.EmbeddedVarNames = tpl.EmbeddedVarNames
-		if !contains(opts.EmbeddedVarNames, "target") {
-			opts.EmbeddedVarNames = append(opts.EmbeddedVarNames, "target")
-		}
 		if opts.UpdateCondition == "" {
 			opts.UpdateCondition = tpl.UpdateCondition
 		}
+	}
+
+	if !contains(opts.EmbeddedVarNames, "target") {
+		opts.EmbeddedVarNames = append(opts.EmbeddedVarNames, "target")
 	}
 
 	if cfg.Vars == nil {
