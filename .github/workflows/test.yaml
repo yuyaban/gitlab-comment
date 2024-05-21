@@ -3,9 +3,6 @@ name: test
 permissions: {}
 on: pull_request
 
-env:
-  AQUA_POLICY_CONFIG: ${{ github.workspace }}/aqua/policy.yaml
-
 jobs:
   path-filter:
     # Get changed files to filter jobs
@@ -40,7 +37,6 @@ jobs:
     permissions:
       contents: read
     with:
-      aqua_policy_config: aqua/policy.yaml
       aqua_version: v2.28.1
       prune: true
     secrets:
