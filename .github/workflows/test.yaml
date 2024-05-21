@@ -3,6 +3,9 @@ name: test
 permissions: {}
 on: pull_request
 
+env:
+  AQUA_POLICY_CONFIG: ${{ github.workspace }}/aqua/policy.yaml
+
 jobs:
   path-filter:
     # Get changed files to filter jobs
@@ -33,11 +36,12 @@ jobs:
     # Update aqua-checksums.json and push a commit
     needs: path-filter
     if: needs.path-filter.outputs.update-aqua-checksums == 'true'
-    uses: aquaproj/update-checksum-workflow/.github/workflows/update-checksum.yaml@75c72cdc372a43dd1b1ad0458748f5d6bfeac7b9 # v1.0.1
+    uses: aquaproj/update-checksum-workflow/.github/workflows/update-checksum.yaml@ce983a56c3dea928294a00d172ad1ec7253257a5 # v0.1.1
     permissions:
       contents: read
     with:
-      aqua_version: v2.28.1
+      aqua_policy_config: aqua/policy.yaml
+      aqua_version: v1.33.0
       prune: true
     secrets:
       gh_app_id: ${{secrets.APP_ID}}
