@@ -35,12 +35,10 @@ jobs:
     if: needs.path-filter.outputs.update-aqua-checksums == 'true'
     uses: aquaproj/update-checksum-workflow/.github/workflows/update-checksum.yaml@75c72cdc372a43dd1b1ad0458748f5d6bfeac7b9 # v1.0.1
     permissions:
-      contents: read
+      contents: write
     with:
       aqua_version: v2.28.1
       prune: true
-      gh_app_repositories: >-
-        ["gitlab-commnet"]
     secrets:
       gh_app_id: ${{secrets.APP_ID}}
       gh_app_private_key: ${{secrets.APP_PRIVATE_KEY}}
