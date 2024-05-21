@@ -39,7 +39,8 @@ jobs:
     with:
       aqua_version: v2.28.1
       prune: true
-      gh_app_repositories: gitlab-comment
+      gh_app_repositories: >-
+        ["gitlab-commnet"]
     secrets:
       gh_app_id: ${{secrets.APP_ID}}
       gh_app_private_key: ${{secrets.APP_PRIVATE_KEY}}
