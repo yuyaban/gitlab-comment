@@ -4,7 +4,13 @@ import (
 	"fmt"
 
 	"github.com/jinzhu/copier"
+	"github.com/sirupsen/logrus"
 	gitlab "github.com/xanzy/go-gitlab"
+)
+
+const (
+	listPerPage = 100
+	maxPages    = 100
 )
 
 type MergeRequest struct {
@@ -50,18 +56,41 @@ type MergeRequest struct {
 // }
 
 func (client *Client) listMRNote(mr *MergeRequest) ([]*Note, error) {
-	notes, _, err := client.note.ListMergeRequestNotes(
-		fmt.Sprintf("%s/%s", mr.Org, mr.Repo),
-		mr.MRNumber,
-		&gitlab.ListMergeRequestNotesOptions{},
-	)
-	if err != nil {
-		return nil, fmt.Errorf("list Notes by GitLab API: %w", err)
-	}
-
 	var allNotes []*Note
-	if err := copier.Copy(&allNotes, &notes); err != nil {
-		return nil, fmt.Errorf("fetch list Notes: %w", err)
+
+	for page := 1; ; page++ {
+		gitlabNotes, resp, err := client.note.ListMergeRequestNotes(
+			fmt.Sprintf("%s/%s", mr.Org, mr.Repo),
+			mr.MRNumber,
+			&gitlab.ListMergeRequestNotesOptions{
+				ListOptions: gitlab.ListOptions{
+					Page:    page,
+					PerPage: listPerPage,
+				},
+			},
+		)
+		if err != nil {
+			return nil, fmt.Errorf("list Notes by GitLab API: %w", err)
+		}
+
+		var notes []*Note
+		if err := copier.Copy(&notes, &gitlabNotes); err != nil {
+			return nil, fmt.Errorf("fetch list Notes: %w", err)
+		}
+
+		allNotes = append(allNotes, notes...)
+
+		if resp.NextPage == 0 {
+			break
+		}
+
+		if page >= maxPages {
+			logE := logrus.WithFields(logrus.Fields{
+				"program": "gitlab-comment",
+			})
+			logE.WithField("maxPages", maxPages).Debug("gitlab.comment.list: too many pages, something went wrong")
+			break
+		}
 	}
 
 	return allNotes, nil
