@@ -8,13 +8,11 @@ jobs:
     # Get changed files to filter jobs
     outputs:
       update-aqua-checksums: ${{steps.changes.outputs.update-aqua-checksums}}
-      # renovate-config-validator: ${{steps.changes.outputs.renovate-config-validator}}
       ghalint: ${{steps.changes.outputs.ghalint}}
     runs-on: ubuntu-latest
     permissions: {}
-    timeout-minutes: 5
     steps:
-      - uses: dorny/paths-filter@v2
+      - uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3.0.2
         id: changes
         with:
           filters: |
