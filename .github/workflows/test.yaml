@@ -35,7 +35,7 @@ jobs:
     if: needs.path-filter.outputs.update-aqua-checksums == 'true'
     uses: aquaproj/update-checksum-workflow/.github/workflows/update-checksum.yaml@75c72cdc372a43dd1b1ad0458748f5d6bfeac7b9 # v1.0.1
     permissions:
-      contents: write
+      contents: read
     with:
       aqua_version: v2.28.1
       prune: true
